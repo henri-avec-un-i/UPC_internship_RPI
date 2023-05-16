@@ -2,42 +2,7 @@
     This file contains helper functions for the MCC DAQ HAT Python examples.
 """
 from __future__ import print_function
-from daqhats import hat_list, HatError, AnalogInputMode, \
-    AnalogInputRange, TcTypes
-
-
-def tc_type_to_string(tc_type):
-    # type: (Enum) -> str
-    """
-    This function converts a thermocouple type defined by the TcTypes class to a
-    string corresponding to the thermocouple type.
-
-    Args:
-        tc_type (Enum): The thermocouple type.
-
-    Returns:
-        str: A string corresponding to the thermocouple type.
-
-    """
-    if tc_type == TcTypes.TYPE_J:
-        name = 'J'
-    elif tc_type == TcTypes.TYPE_K:
-        name = 'K'
-    elif tc_type == TcTypes.TYPE_T:
-        name = 'T'
-    elif tc_type == TcTypes.TYPE_E:
-        name = 'E'
-    elif tc_type == TcTypes.TYPE_R:
-        name = 'R'
-    elif tc_type == TcTypes.TYPE_S:
-        name = 'S'
-    elif tc_type == TcTypes.TYPE_B:
-        name = 'B'
-    elif tc_type == TcTypes.TYPE_N:
-        name = 'N'
-    else:
-        name = 'DISABLED'
-    return name
+from daqhats import hat_list, HatError, TcTypes
 
 
 def select_hat_device(filter_by_id):
@@ -117,6 +82,40 @@ def enum_mask_to_string(enum_type, bit_mask):
     return ', '.join(item_names)
 
 
+def tc_type_to_string(tc_type):
+    # type: (Enum) -> str
+    """
+    This function converts a thermocouple type defined by the TcTypes class to a
+    string corresponding to the thermocouple type.
+
+    Args:
+        tc_type (Enum): The thermocouple type.
+
+    Returns:
+        str: A string corresponding to the thermocouple type.
+
+    """
+    if tc_type == TcTypes.TYPE_J:
+        name = 'J'
+    elif tc_type == TcTypes.TYPE_K:
+        name = 'K'
+    elif tc_type == TcTypes.TYPE_T:
+        name = 'T'
+    elif tc_type == TcTypes.TYPE_E:
+        name = 'E'
+    elif tc_type == TcTypes.TYPE_R:
+        name = 'R'
+    elif tc_type == TcTypes.TYPE_S:
+        name = 'S'
+    elif tc_type == TcTypes.TYPE_B:
+        name = 'B'
+    elif tc_type == TcTypes.TYPE_N:
+        name = 'N'
+    else:
+        name = 'DISABLED'
+    return name
+
+
 def chan_list_to_mask(chan_list):
     # type: (list[int]) -> int
     """
@@ -139,51 +138,6 @@ def chan_list_to_mask(chan_list):
 
     return chan_mask
 
-def input_mode_to_string(input_mode):
-    # type: (int) -> string
-    """
-    This function returns a string representation of the input mode.
-
-    Args:
-        input_mode (int): The analog input mode.
-
-    Returns:
-        string: A string representation of the mode.
-
-    """
-    if input_mode == AnalogInputMode.SE:
-        mode_str = "Single-ended"
-    elif input_mode == AnalogInputMode.DIFF:
-        mode_str = "Differential"
-    else:
-        mode_str = "Invalid"
-
-    return mode_str
-
-def input_range_to_string(input_range):
-    # type: (int) -> string
-    """
-    This function returns a string representation of the input range.
-
-    Args:
-        input_range (int): The analog input range.
-
-    Returns:
-        string: A string representation of the range.
-
-    """
-    if input_range == AnalogInputRange.BIP_10V:
-        range_str = "+/- 10 V"
-    elif input_range == AnalogInputRange.BIP_5V:
-        range_str = "+/- 5 V"
-    elif input_range == AnalogInputRange.BIP_2V:
-        range_str = "+/- 2 V"
-    elif input_range == AnalogInputRange.BIP_1V:
-        range_str = "+/- 2 V"
-    else:
-        range_str = "Invalid"
-
-    return range_str
 
 def validate_channels(channel_set, number_of_channels):
     # type: (set, int) -> None

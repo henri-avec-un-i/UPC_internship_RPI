@@ -14,12 +14,12 @@ import numpy as np
 def T_P_acq_csv(acq_frequency = 1, N_measures = 10, terminal_output = True, data_filename = "data.csv"):
     #Returns a csv data file with Pressure and Temperature data before and after microchip
     #acq_frequency in Herz, max acq_frequency for Temperature is 1 Hz (cf. manufacturer datasheet)
-    #Set terminal_output to false if you don't want terminal; output
+    #Set terminal_output to false if you don't want terminal output
     
-    import datetime #Warning : Time and date set by Rasperry Pi intenarl clock, out of sync if powered down
+    import datetime #Warning : Time and date set by Rasperry Pi internal clock, out of sync if powered down
     
     tc_type = TcTypes.TYPE_K   # change this to the desired thermocouple type
-    delay_between_reads = 1/acq_frequency # #To specify, Seconds
+    delay_between_reads = 1/acq_frequency # #To specify, in seconds
     channels = (0, 1) #To specify, of MC134
     T_array = np.zeros((N_measures,len(channels))) # List of temperatures for both sensors in Celsius
     P_array = np.zeros((N_measures,len(channels))) #To complete once pressure sensors is hooked up
