@@ -13,9 +13,9 @@ GPIO.setup(trigger_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Define the function to run when the trigger input is detected
 def trigger_callback(channel):
-    print("Trigger input detected!")
-    T_P_acq_csv(acq_frequency = 1, N_measures = 10, terminal_output = True, data_filename = "data.csv")
-
+    print("Acquiring temperature and pressure data in csv...")
+    T_P_acq_csv(channels_134 = (0, 1), channels_128 = (0, 1), acq_frequency = 10, N_measures = 50, terminal_output = False, data_filename = "data.csv")
+    print("Data saved in csv !")
     
 
 # Add the event detection for the falling edge of the trigger input
@@ -24,7 +24,7 @@ GPIO.add_event_detect(trigger_pin, GPIO.FALLING, callback=trigger_callback)
 try:
     print("Waiting for trigger input...")
     while True:
-        pass
+        T_P_disp(channels_134 = (0, 1), channels_128 = (0, 1), delay_between_reads = 0.1)
 
 except KeyboardInterrupt:
     print("Exiting...")
