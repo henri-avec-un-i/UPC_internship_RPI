@@ -11,25 +11,36 @@ import numpy as np
 
 
 
-#Function to convert sensor volt input to bar using linear conversion, 
-#coefficients are to be adjusted with a calibration step, also linearity
-#between volts and bar value is to be checked
-def Volt_to_bar(volt_value, slope = 50, offset = 0):
-    bar_value = volt_value*slope + offset
+def volt_to_bar(volt_value, slope=50, offset=0):
+    """
+    Converts a voltage value to a bar value using linear conversion.
+
+    Args:
+        volt_value (float): The voltage value to convert.
+        slope (float, optional): The slope coefficient for the linear conversion. Defaults to 50.
+        offset (float, optional): The offset coefficient for the linear conversion. Defaults to 0.
+
+    Returns:
+        float: The bar value converted from the voltage value.
+    """
+    # Apply linear conversion formula: bar_value = volt_value * slope + offset
+    bar_value = volt_value * slope + offset
+
     return bar_value
+
 
 
 def T_P_acq_csv(channels_134 = (0, 1), channels_128 = (0, 1), acq_frequency = 1, N_measures = 10, terminal_output = True, data_filename = "data.csv"):
     '''
-    Description :
+    Description: Returns a csv data file with Pressure and Temperature data before and after microchip
+    acq_frequency in Herz, max acq_frequency for Temperature is 1 Hz (cf. manufacturer datasheet)
+    Set terminal_output to false if you don't want terminal output
     Inputs : channels_134 = sensors channel on MC134, channels_128 = sensors channel on MC128, 
     Outputs :
     
     '''
     
-    #Returns a csv data file with Pressure and Temperature data before and after microchip
-    #acq_frequency in Herz, max acq_frequency for Temperature is 1 Hz (cf. manufacturer datasheet)
-    #Set terminal_output to false if you don't want terminal output
+    
     
     import datetime #Warning : Time and date set by Rasperry Pi internal clock, out of sync if powered down
     
@@ -105,7 +116,7 @@ def T_P_acq_csv(channels_134 = (0, 1), channels_128 = (0, 1), acq_frequency = 1,
             # Read a single value from each selected channel for pressure
             for channel in channels_128:
                 value_P_volt = hat_128.a_in_read(channel)
-                value_P_bar = Volt_to_bar(value_P_volt)
+                value_P_bar = volt_to_bar(value_P_volt)
                 P_array[i,channel] = value_P_bar
                 
                 #Print the pressure values
@@ -208,7 +219,7 @@ def T_P_disp(channels_134 = (0, 1), channels_128 = (0, 1), delay_between_reads =
             # Read a single value from each selected channel for pressure
             for channel in channels_128:
                 value_P_volt = hat_128.a_in_read(channel)
-                value_P_bar = Volt_to_bar(value_P_volt)
+                value_P_bar = volt_to_bar(value_P_volt)
                 
                 #Print the pressure values
                 if channel == channels_128[-1]:

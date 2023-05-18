@@ -1,6 +1,8 @@
 import RPi.GPIO as GPIO
 from T_P_acq_func import *
 
+#Script to display continuously temperature and pressure data while waiting for an external trigger input. Records 
+#data in csv file when receiving an external trigger input
 
 # Set the GPIO mode to BCM
 GPIO.setmode(GPIO.BCM)
@@ -24,7 +26,7 @@ GPIO.add_event_detect(trigger_pin, GPIO.FALLING, callback=trigger_callback)
 try:
     print("Waiting for trigger input...")
     while True:
-        T_P_disp(channels_134 = (0, 1), channels_128 = (0, 1), delay_between_reads = 0.1)
+        T_P_disp(channels_134 = (0, 1), channels_128 = (0, 1), delay_between_reads = 1)
 
 except KeyboardInterrupt:
     print("Exiting...")
