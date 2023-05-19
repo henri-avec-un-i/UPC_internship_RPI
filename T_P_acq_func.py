@@ -194,3 +194,43 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1):
 
     except (HatError, ValueError) as error:
         print('\n', error)
+
+
+
+
+
+        
+def csv_data_reader(file_name = "data.csv", terminal_output = False):
+    # Specify the path to the CSV file
+    csv_file = file_name
+
+    # Initialize empty arrays for acquisition parameters, headers, and data
+    acquisition_params = []
+    column_headers = []
+    data = []
+
+    # Read the CSV file
+    with open(csv_file, "r") as file:
+        reader = csv.reader(file)
+
+        # Extract the acquisition parameters from the first line
+        acquisition_params = next(reader)
+
+        # Extract the headers from the second line
+        column_headers = next(reader)
+
+        # Read the rest of the lines as data
+        data = list(reader)
+    
+    if terminal_output:
+        # Print the arrays if terminal_output == True
+        print("Acquisition Parameters:", acquisition_params)
+        print("Column Headers:", column_headers)
+        print("Data:")
+        for row in data:
+            print(row)
+
+    return acquisition_params, column_headers, np.array(data)
+
+
+
