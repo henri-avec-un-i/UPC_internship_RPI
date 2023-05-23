@@ -9,7 +9,11 @@ from daqhats import mcc128, OptionFlags, mcc134, HatIDs, HatError, TcTypes, Anal
 from daqhats_utils import select_hat_device, tc_type_to_string, \
 enum_mask_to_string, input_mode_to_string, input_range_to_string #This needs to be in the same folders as this script
 
+"""
+Purpose:
+    Contain the different functions used for P and T data acquisition.
 
+"""
 
 def volt_to_bar(volt_value, slope=50, offset=0):
     """
@@ -201,6 +205,20 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1):
 
         
 def csv_data_reader(file_name = "data.csv", terminal_output = False):
+    
+    """
+    Reads data from a data CSV file and returns acquisition parameters, column headers, and data as arrays.
+
+    Args:
+        file_name (str): The name of the CSV file to read. Default is "data.csv".
+        terminal_output (bool): Flag to determine whether to print the acquired data to the terminal.
+                               Default is False.
+
+    Returns:
+        tuple: A tuple containing the acquisition parameters, column headers, and data as arrays.
+
+    """
+    
     # Specify the path to the CSV file
     csv_file = file_name
 
