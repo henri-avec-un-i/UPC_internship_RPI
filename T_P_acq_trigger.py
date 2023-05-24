@@ -20,8 +20,12 @@ GPIO.setmode(GPIO.BCM)
 # Define the GPIO pin number
 trigger_pin = 17
 
+
 # Set up the GPIO pin as an input with an initial high state
 GPIO.setup(trigger_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+
+
 
 def trigger_callback(channel):
     """
@@ -37,10 +41,11 @@ def trigger_callback(channel):
 # Add the event detection for the falling edge of the trigger input
 GPIO.add_event_detect(trigger_pin, GPIO.FALLING, callback=trigger_callback)
 
+
 try:
     print("Waiting for trigger input...")
     while True:
-        T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=1)
+        T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=1, alarm_on = True, pressure_alarm = 130)
 
 except KeyboardInterrupt:
     print("Exiting...")

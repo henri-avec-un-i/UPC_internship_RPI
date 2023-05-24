@@ -4,6 +4,8 @@ from time import sleep
 from sys import stdout
 import numpy as np
 from datetime import datetime
+import RPi.GPIO as GPIO
+
 
 from daqhats import mcc128, OptionFlags, mcc134, HatIDs, HatError, TcTypes, AnalogInputMode, AnalogInputRange
 from daqhats_utils import select_hat_device, tc_type_to_string, \
@@ -14,6 +16,20 @@ Purpose:
     Contain the different functions used for P and T data acquisition.
 
 """
+
+
+# Set the GPIO mode to BCM
+GPIO.setmode(GPIO.BCM)
+
+# Define the GPIO pins number
+alarm_pin = 27
+system_stop_pin = 22
+
+
+# Set up the GPIO pins as an output
+GPIO.setup(alarm_pin, GPIO.OUT)
+GPIO.setup(system_stop_pin, GPIO.OUT)
+
 
 def volt_to_bar(volt_value, slope=50, offset=0):
     """
@@ -132,7 +148,8 @@ def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_mea
 
 
 
-def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1):
+
+def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, alarm_on = True, pressure_alarm = 150):
     """
     Displays real-time Temperature and Pressure data from sensors on MC134 and MC128.
 
@@ -159,6 +176,9 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1):
 
         current_datetime = datetime.datetime.now()
         formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
+        
+        
+        
 
         for channel in channels_134:
             hat_134.tc_type_write(channel, tc_type)
@@ -171,6 +191,12 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1):
         print('')
 
         while True:
+            
+            #set alarm digital output pin to low
+            GPIO.output(alarm_pin, GPIO.LOW)
+            #set stop system digital output pin to low
+            GPIO.output(system_stop_pin, GPIO.LOW)
+            
             for channel in channels_134:
                 value_T = hat_134.t_in_read(channel)
 
@@ -187,6 +213,14 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1):
                 value_P_volt = hat_128.a_in_read(channel)
                 value_P_bar = volt_to_bar(value_P_volt)
                 
+                if alarm_on:
+                    if value_P_bar > pressure_alarm:
+                        #set alarm digital output pin to high
+                        GPIO.output(alarm_pin, GPIO.HIGH)
+                        #set stop system digital output pin to high
+                        GPIO.output(system_stop_pin, GPIO.HIGH)
+                    
+                
                 #This is here in order to print continuously T and P values over the same line
                 if channel == channels_128[-1]:
                     print('{:12.2f} bar'.format(value_P_bar), end='\r')
@@ -198,6 +232,10 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1):
 
     except (HatError, ValueError) as error:
         print('\n', error)
+        GPIO.cleanup()
+
+
+
 
 
 
