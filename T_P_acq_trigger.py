@@ -35,7 +35,7 @@ def trigger_callback(channel):
         channel (int): The GPIO channel number that triggered the callback.
     """
     print("Acquiring temperature and pressure data in csv...")
-    T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=10, N_measures=50, terminal_output=False, data_filename="data.csv")
+    T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=10, N_measures=50, terminal_output=False, data_filename="data.csv", alarm_on = True, pressure_alarm = 130)
     print("Data saved in csv!")
 
 # Add the event detection for the falling edge of the trigger input

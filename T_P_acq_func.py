@@ -23,12 +23,66 @@ GPIO.setmode(GPIO.BCM)
 
 # Define the GPIO pins number
 alarm_pin = 27
-system_stop_pin = 22
-
+system_shutdown_pin = 22
 
 # Set up the GPIO pins as an output
 GPIO.setup(alarm_pin, GPIO.OUT)
-GPIO.setup(system_stop_pin, GPIO.OUT)
+GPIO.setup(system_shutdown_pin, GPIO.OUT)
+
+
+
+def sound_alarm():
+    """
+    Rings a sound alarm, to complete
+
+    Args: to complete
+
+    Returns: to complete
+
+    """
+    #set alarm digital output pin to high
+    GPIO.output(alarm_pin, GPIO.HIGH)
+
+def no_sound_alarm():
+    """
+    stop the sound alarm, to complete
+
+    Args: to complete
+
+    Returns: to complete
+
+    """
+    #set alarm digital output pin to low
+    GPIO.output(alarm_pin, GPIO.LOW)
+
+
+def system_shutdown():
+    """
+    Shutdowns the system (shutdown valves,... to complete), to complete
+
+    Args: to complete
+
+    Returns: to complete
+
+    """
+    #set stop system digital output pin to high
+    GPIO.output(system_shutdown_pin, GPIO.HIGH)
+
+
+def no_system_shutdown():
+    """
+    Stops the system shutdown (shutdown valves,... to complete), to complete
+
+    Args: to complete
+
+    Returns: to complete
+
+    """
+    #set stop system digital output pin to low
+    GPIO.output(system_shutdown_pin, GPIO.LOW)
+
+
+
 
 
 def volt_to_bar(volt_value, slope=50, offset=0):
@@ -51,7 +105,7 @@ def volt_to_bar(volt_value, slope=50, offset=0):
 
 
 def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_measures=10, terminal_output=True,
-                data_filename="data.csv"):
+                data_filename="data.csv", alarm_on = True, pressure_alarm = 130):
     """
     Acquires Pressure and Temperature data before and after microchip and writes it to a CSV file.
 
@@ -82,14 +136,19 @@ def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_mea
         # Initialisation of P and T data arrays
         T_array = np.zeros((N_measures, len(channels_134)))
         P_array = np.zeros((N_measures, len(channels_128)))
-
+        
+        #Date initialisation for cvs header
         current_datetime = datetime.datetime.now()
         formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
-
+        
+        # delay_between_reads corresponds to the sleep time of the Pi between each mesures 
         delay_between_reads = 1 / acq_frequency
-
+        
+        #csv file initialisation
         with open(data_filename, mode="w", newline="") as file:
             writer = csv.writer(file)
+            
+            #Writes header
             writer.writerow(["Date and time", formatted_datetime, "Number of measures: ", N_measures,
                              "Acquisition frequency: ", acq_frequency, "Hz"])
             writer.writerow(["N_measure", "Pressure 1", "Temperature 1", "Pressure 2", "Temperature 2"])
@@ -105,13 +164,21 @@ def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_mea
                     print('     Channel Pressure', channel, end='')
                 print('')
 
+            #Initialisation of samples count, displayed in the first column of the csv fils
             samples_per_channel = 0
-
+            
+            # Data acquisition
             for i in range(N_measures):
+                # Set the status of the alarm and shutdown routine to off
+                no_sound_alarm()
+                no_system_shutdown()
+                
+                #Updates the sample count for each new measurent
                 samples_per_channel += 1
                 if terminal_output:
                     print('\r{:8d}'.format(samples_per_channel), end='')
-
+                
+                # Temperature measurement
                 for channel in channels_134:
                     hat_134.tc_type_write(channel, tc_type)
                     value_T = hat_134.t_in_read(channel)
@@ -127,17 +194,34 @@ def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_mea
                         else:
                             print('{:12.2f} C'.format(value_T), end='')
 
+                # Pressure measurement
                 for channel in channels_128:
                     value_P_volt = hat_128.a_in_read(channel)
                     value_P_bar = volt_to_bar(value_P_volt)
                     P_array[i, channel] = value_P_bar
-
+                
+                # Pressure alarm check    
+                if alarm_on:
+                    if value_P_bar > pressure_alarm:
+                        #call pressure_alarm function
+                        sound_alarm()
+                        #call system_shutdown function
+                        system_shutdown()
+                        
+                        print('Warning : Pressure above ', pressure_alarm,' bar')
+                   
+                    else:
+                        no_sound_alarm()
+                        no_system_shutdown()
+                        
                     if terminal_output:
                         print('{:12.2f} bar'.format(value_P_bar), end='')
 
                 stdout.flush()
+                # Delay between reads
                 sleep(delay_between_reads)
-
+                
+                # Writes the row of data to the csv file
                 row = [i, P_array[i, 0], T_array[i, 0], P_array[i, 1], T_array[i, 1]]
                 writer.writerow(row)
 
@@ -173,13 +257,12 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, 
         address_134 = select_hat_device(HatIDs.MCC_134)
         hat_134 = mcc134(address_134)
         tc_type = TcTypes.TYPE_K
-
+        
+        #Date initialisation for cvs header
         current_datetime = datetime.datetime.now()
         formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
-        
-        
-        
 
+        # Writes the thermocouple type in MC134 memory
         for channel in channels_134:
             hat_134.tc_type_write(channel, tc_type)
 
@@ -191,12 +274,10 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, 
         print('')
 
         while True:
+            no_sound_alarm()
+            no_system_shutdown()
             
-            #set alarm digital output pin to low
-            GPIO.output(alarm_pin, GPIO.LOW)
-            #set stop system digital output pin to low
-            GPIO.output(system_stop_pin, GPIO.LOW)
-            
+            # Temperature measurement
             for channel in channels_134:
                 value_T = hat_134.t_in_read(channel)
 
@@ -208,19 +289,22 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, 
                     print('   Common Mode', end='')
                 else:
                     print('{:12.2f} C'.format(value_T), end='')
-
+                    
+            # Pressure measurement
             for channel in channels_128:
                 value_P_volt = hat_128.a_in_read(channel)
                 value_P_bar = volt_to_bar(value_P_volt)
                 
+                # Pressure alarm check 
                 if alarm_on:
                     if value_P_bar > pressure_alarm:
-                        #set alarm digital output pin to high
-                        GPIO.output(alarm_pin, GPIO.HIGH)
-                        #set stop system digital output pin to high
-                        GPIO.output(system_stop_pin, GPIO.HIGH)
-                    
-                
+                        #call pressure_alarm function
+                        sound_alarm()
+                        #call system_shutdown function
+                        system_shutdown()
+                        print('Warning : Pressure above ', pressure_alarm,' bar')
+
+                      
                 #This is here in order to print continuously T and P values over the same line
                 if channel == channels_128[-1]:
                     print('{:12.2f} bar'.format(value_P_bar), end='\r')
@@ -233,12 +317,6 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, 
     except (HatError, ValueError) as error:
         print('\n', error)
         GPIO.cleanup()
-
-
-
-
-
-
 
 
         
