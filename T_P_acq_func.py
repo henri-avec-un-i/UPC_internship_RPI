@@ -116,6 +116,8 @@ def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_mea
         N_measures (int, optional): Number of measures. Defaults to 10.
         terminal_output (bool, optional): Whether to display terminal output. Defaults to True.
         data_filename (str, optional): Name of the data CSV file. Defaults to "data.csv".
+        alarm_on (bool, optional):  Wheter to activate the safety alarm. Default to True
+        pressure_alarm (float, optional): Pressure alarm threshold. Default to 130 bars
     """
     import datetime
 
@@ -241,6 +243,8 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, 
         channels_134 (tuple, optional): Sensors channels on MC134. Defaults to (0, 1).
         channels_128 (tuple, optional): Sensors channels on MC128. Defaults to (0, 1).
         delay_between_reads (float, optional): Delay between sensor readings in seconds. Defaults to 0.1.
+        alarm_on (bool, optional):  Wheter to activate the safety alarm. Default to True
+        pressure_alarm (float, optional): Pressure alarm threshold. Default to 130 bars
     """
     import datetime
 
@@ -365,6 +369,65 @@ def csv_data_reader(file_name = "data.csv", terminal_output = False):
             print(row)
 
     return acquisition_params, column_headers, np.array(data)
+
+
+
+def T_P_sync_acq_csv(channels_134=(0, 1), channels_128=(0, 1), end_delay = 1, terminal_output=True,
+                data_filename="data.csv", alarm_on = True, pressure_alarm = 130):
+
+
+    """
+    Acquires Pressure and Temperature data in sync with an external clock signal connected to the MC128
+    and writes it to a CSV file.
+
+    Args:
+        channels_134 (tuple, optional): Sensors channels on MC134. Defaults to (0, 1).
+        channels_128 (tuple, optional): Sensors channels on MC128. Defaults to (0, 1).
+        end_delay (float, optional): Delay to specify after wich the acquisition stops if no new clock cycle is received
+        terminal_output (bool, optional): Whether to display terminal output. Defaults to True.
+        data_filename (str, optional): Name of the data CSV file. Defaults to "data.csv".
+        alarm_on (bool, optional):  Wheter to activate the safety alarm. Default to True
+        pressure_alarm (float, optional): Pressure alarm threshold. Default to 130 bars
+    """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
