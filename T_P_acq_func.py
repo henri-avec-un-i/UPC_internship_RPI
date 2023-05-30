@@ -392,11 +392,37 @@ def T_P_sync_acq_csv(channels_134=(0, 1), channels_128=(0, 1), end_delay = 1, te
 
 
 
+def update_T_P_array(data_array, relative_time):
+    
+    """
+    
+    Appends to the data array new values of T and P as well as the time of measurement
+    
+    Args:
+        channels_134 (tuple, optional): Sensors channels on MC134. Defaults to (0, 1).
+        channels_128 (tuple, optional): Sensors channels on MC128. Defaults to (0, 1).
+        end_delay (float, optional): Delay to specify after wich the acquisition stops if no new clock cycle is received
+        terminal_output (bool, optional): Whether to display terminal output. Defaults to True.
+        data_filename (str, optional): Name of the data CSV file. Defaults to "data.csv".
+        alarm_on (bool, optional):  Wheter to activate the safety alarm. Default to True
+        pressure_alarm (float, optional): Pressure alarm threshold. Default to 130 bars
+    """
+    
+    if data_array == []:
+        
+        return [[relative_time, T1, T2, P1, P2]]
+        
+    else:
+        
+        
+        
+    new_values
+    
+    #Add condtion if the arry is empty
 
+    
 
-
-
-
+    return updated_array
 
 
 
