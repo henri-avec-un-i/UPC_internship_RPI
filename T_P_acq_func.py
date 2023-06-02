@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 
 from daqhats import mcc128, OptionFlags, mcc134, HatIDs, HatError, TcTypes, AnalogInputMode, AnalogInputRange
 from daqhats_utils import select_hat_device, tc_type_to_string, \
-enum_mask_to_string, input_mode_to_string, input_range_to_string #This needs to be in the same folders as this script
+enum_mask_to_string, input_mode_to_string, input_range_to_string #daqhats_utils needs to be in the same folders as this script
 
 """
 Purpose:
@@ -82,16 +82,13 @@ def no_system_shutdown():
     GPIO.output(system_shutdown_pin, GPIO.LOW)
 
 
-
-
-
 def volt_to_bar(volt_value, slope=50, offset=0):
     """
     Converts a voltage value to a bar value using linear conversion.
 
     Args:
         volt_value (float): The voltage value to convert.
-        slope (float, optional): The slope coefficient for the linear conversion. Defaults to 50.
+        slope (float, optional): The slope coefficient for the linear conversion. Defaults to 50. To precise through calibration
         offset (float, optional): The offset coefficient for the linear conversion. Defaults to 0.
 
     Returns:
@@ -107,17 +104,20 @@ def volt_to_bar(volt_value, slope=50, offset=0):
 def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_measures=10, terminal_output=True,
                 data_filename="data.csv", alarm_on = True, pressure_alarm = 130):
     """
-    Acquires Pressure and Temperature data before and after microchip and writes it to a CSV file.
+    Acquires Pressure and Temperature data and writes it to a CSV file. Right now hardcoded only for 2 Pressure sensors
+    and 2 Temperature sensors
 
     Args:
         channels_134 (tuple, optional): Sensors channels on MC134. Defaults to (0, 1).
         channels_128 (tuple, optional): Sensors channels on MC128. Defaults to (0, 1).
         acq_frequency (int, optional): Acquisition frequency in Hz. Defaults to 1.
         N_measures (int, optional): Number of measures. Defaults to 10.
-        terminal_output (bool, optional): Whether to display terminal output. Defaults to True.
+        terminal_output (bool, optional): Whether to display terminal output, ie here real time T and P values as well as acquisition parameters. Defaults to True.
         data_filename (str, optional): Name of the data CSV file. Defaults to "data.csv".
         alarm_on (bool, optional):  Wheter to activate the safety alarm. Default to True
-        pressure_alarm (float, optional): Pressure alarm threshold. Default to 130 bars
+        pressure_alarm (float, optional): Pressure alarm threshold in bars. Default to 130 bars
+        
+    
     """
     import datetime
 
@@ -229,6 +229,7 @@ def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_mea
 
     except (HatError, ValueError) as error:
         print('\n', error)
+        GPIO.cleanup() #Needed in order to clear GPIO pin assignement
 
 
 
@@ -320,7 +321,7 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, 
 
     except (HatError, ValueError) as error:
         print('\n', error)
-        GPIO.cleanup()
+        GPIO.cleanup() #Needed in order to clear GPIO pin assignement
 
 
         
@@ -375,19 +376,19 @@ def csv_data_reader(file_name = "data.csv", terminal_output = False):
 
 def get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)):
     """
-    TO CHANGE
-    Appends to the data array new values of T and P as well as the time of measurement, need to use list of
-    lists in order to be able to append new lines without creating new arrays each times (not possible in np<)
     
-    channels_T = channel MCC 134
-    channels_P = channel MCC 128
+    TD : Add high pressure alarm function call here also
+    
+    Retrieves current temperature and pressure values from specified channels of MCC 128 and MCC 134.
 
-    Args:
-    
-    value_P_volt = hat_128.a_in_read(channel)
-                value_P_bar = volt_to_bar(value_P_volt)
-        
-    Output: T_values (list), P_values (list)
+    Parameters:
+        hat_134 (object): An MCC 134 object (mcc134 class) used to measure temperature.
+        hat_128 (object): An MCC 128 object (mcc128 class) used to measure pressure.
+        channels_T (tuple): A tuple containing the channels MCC 134 from which temperature values should be read. Defaults to (0, 1).
+        channels_P (tuple): A tuple containing the channels of the MCC 128 from which pressure values should be read. Defaults to (0, 1).
+
+    Returns:
+        list: A list containing the retrieved temperature and pressure values at the time that the function is called.
     """
     
     T_values = []
@@ -405,32 +406,32 @@ def get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)):
 
 
 
-
 def update_T_P_array(hat_134, hat_128, data_array, relative_time, channels_T=(0, 1), channels_P=(0, 1)):
-    
     """
-    TO CHANGE
-    Appends to the data array new values of T and P as well as the time of measurement, need to use list of
-    lists in order to be able to append new lines without creating new arrays each times (not possible in np)
-    
+    Appends new temperature (T) and pressure (P) values, along with the time of measurement, to the data array.
+
     Args:
-        
-    Output: Updated data array
+        hat_134 (float): Measurement value of temperature from sensor hat_134.
+        hat_128 (float): Measurement value of temperature from sensor hat_128.
+        data_array (list): List of lists containing existing data rows.
+        relative_time (float): Time of measurement relative to a reference point.
+        channels_T (tuple, optional): Tuple containing the indices of temperature channels in the measurement. Defaults to (0, 1).
+        channels_P (tuple, optional): Tuple containing the indices of pressure channels in the measurement. Defaults to (0, 1).
+
+    Returns:
+        list: Updated data array with the new measurement values appended.
     """
-    
-    new_row = get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)) + [relative_time]
-    
-    #If the array is empty (first measure), then return the first measure in a appendable array
-    if data_array == []:
+
+    # Retrieve the current temperature and pressure measurement values
+    new_row = get_current_T_P(hat_134, hat_128, channels_T, channels_P) + [relative_time]
+
+    # If the array is empty (first measurement), create a new array with the first measurement
+    if not data_array:
         data_array = [new_row]
-        return data_array #Check if format is ok
-        
     else:
         data_array.append(new_row)
-        return data_array
 
-
-
+    #return data_array
 
 
 

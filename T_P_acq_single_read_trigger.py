@@ -38,8 +38,8 @@ channels_134=(0, 1)
 address_134 = select_hat_device(HatIDs.MCC_134)
 hat_134 = mcc134(address_134)
 tc_type = TcTypes.TYPE_K
-for channel in channels_134:
-    hat_134.tc_type_write(channel, tc_type)
+for chan in channels_134:
+    hat_134.tc_type_write(chan, tc_type)
 
 
 
@@ -56,15 +56,16 @@ GPIO.setup(trigger_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 # Initialisation of data_array
 column_labels = ['Time', 'T1', 'T2', 'P1', 'P2'] # To modify as desired
-data_array = []
 
 # Initialisation of trigger event counter, used for timer
 rising_edge_counter = 0
 
 
 
+data_array = []
+
 #Function executed at each trigger event
-def trigger_callback(channel):
+def trigger_callback(trigger_pin):
     """
     Callback function to be executed when the trigger input is detected.
 
@@ -89,14 +90,29 @@ def trigger_callback(channel):
     rising_edge_counter += 1
     
     '''
+    
+    global data_array
+    
+    relative_time = None
+    
+    # Retrieve the current temperature and pressure measurement values
+    new_row = get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)) + [relative_time]
+
+    # If the array is empty (first measurement), create a new array with the first measurement
+    if not data_array:
+        data_array = [new_row]
+    else:
+        data_array.append(new_row)
+
+    print(data_array)
+
+
+    '''
     update_T_P_array(hat_134, hat_128, data_array, relative_time = None, channels_T=(0, 1), channels_P=(0, 1))
     print(data_array)
     print('Trigger detected')
-    #print(get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)))
-    
-    
-    
-
+    print(get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)))
+    '''
 
 
 # Add the event detection for the falling edge of the trigger input
@@ -105,10 +121,12 @@ GPIO.add_event_detect(trigger_pin, GPIO.RISING, callback=trigger_callback)
 
 try:
     #While no trigger event, just display the pressure and temperature data, need to update function
-    #in order to use LCD display 
+    #in order to use LCD display
+    
+    
     while True:
         #Function that display T and P data continuoulsy, Pressure alarm in bar
-        #Need to pay attention to the refresh rate
+        #Need to pay attention to the refresh rate COMPARED TO acquisition rate
         T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.001, alarm_on = False, pressure_alarm = 130)
 
 
