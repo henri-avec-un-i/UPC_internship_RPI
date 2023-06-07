@@ -55,14 +55,17 @@ GPIO.setup(trigger_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 
 # Initialisation of data_array
-column_labels = ['Time', 'T1', 'T2', 'P1', 'P2'] # To modify as desired
+header = ['Index', 'Time', 'T1', 'T2', 'P1', 'P2'] # To modify as desired
+filename = 'data_single_read_trigger.csv'
+data_array = []
 
-# Initialisation of trigger event counter, used for timer
 rising_edge_counter = 0
 
-
-
-data_array = []
+'''
+TO IMPLEMENT LATER WITH THREADING
+#Time after which the acquisition stops and the data is saved as a CSV, in seconds
+timeout_delay = 5
+'''
 
 #Function executed at each trigger event
 def trigger_callback(trigger_pin):
@@ -75,44 +78,31 @@ def trigger_callback(trigger_pin):
         TD : Add timeout timer that exit the function and return the array and csv
     """
     
-    '''
+    global data_array
+    global start_time
+    global rising_edge_counter
+    global timeout_delay
+    
+    #Timer start at first measure, ie first rising edge
     if rising_edge_counter == 0:
         start_time = time.time()
-        #Single read T and P, append the values to the data array, write time also
-
     
-    else:
-        current_time = time.time()
-        relative_time = current_time - start_time
-        #Single read T and P, append the values to the data array, write time also
-        
-    #Increment the rising edge counter, ie index of P and T measure
-    rising_edge_counter += 1
     
-    '''
-    
-    global data_array
-    
-    relative_time = None
+    relative_time = time.time() - start_time
     
     # Retrieve the current temperature and pressure measurement values
-    new_row = get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)) + [relative_time]
-
+    new_row = [rising_edge_counter] + [relative_time] + get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1))
+    
     # If the array is empty (first measurement), create a new array with the first measurement
-    if not data_array:
+    if data_array == []:
         data_array = [new_row]
     else:
         data_array.append(new_row)
+    
+    rising_edge_counter += 1
 
-    print(data_array)
+    #print(data_array)
 
-
-    '''
-    update_T_P_array(hat_134, hat_128, data_array, relative_time = None, channels_T=(0, 1), channels_P=(0, 1))
-    print(data_array)
-    print('Trigger detected')
-    print(get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)))
-    '''
 
 
 # Add the event detection for the falling edge of the trigger input
@@ -122,15 +112,15 @@ GPIO.add_event_detect(trigger_pin, GPIO.RISING, callback=trigger_callback)
 try:
     #While no trigger event, just display the pressure and temperature data, need to update function
     #in order to use LCD display
-    
-    
     while True:
         #Function that display T and P data continuoulsy, Pressure alarm in bar
         #Need to pay attention to the refresh rate COMPARED TO acquisition rate
         T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.001, alarm_on = False, pressure_alarm = 130)
 
 
-
 except KeyboardInterrupt:
+    # Save data array as a csv, print it if you want and clean data_array
+    save_data_to_csv(data_array, header, filename)
+    data_array = []    
     print("Exiting...")
     GPIO.cleanup()

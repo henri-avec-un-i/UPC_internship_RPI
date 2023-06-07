@@ -370,6 +370,34 @@ def csv_data_reader(file_name = "data.csv", terminal_output = False):
             print(row)
 
     return acquisition_params, column_headers, np.array(data)
+    
+
+def save_data_to_csv(data, header, filename):
+    """
+    Save the data array (list of list) as a CSV file with a specified header.
+
+    Args:
+        data (list): The data array to be saved as CSV.
+        header (list): The header row for the CSV file.
+        filename (str): The name of the CSV file to be created.
+
+    Returns:
+        None
+    """
+
+    # Open the file in write mode with newline=''
+    with open(filename, 'w', newline='') as csvfile:
+        # Create a CSV writer object
+        writer = csv.writer(csvfile)
+        
+        # Write the header row
+        writer.writerow(header)
+        
+        # Write the data rows
+        writer.writerows(data)
+
+    print(f"CSV file '{filename}' saved successfully.")
+
 
 
 
