@@ -4,6 +4,10 @@ Description:
 
 TD : Wrap the whole script in a function, document well, add error handling ?
 
+TO IMPLEMENT LATER WITH THREADING
+#Time after which the acquisition stops and the data is saved as a CSV, in seconds
+timeout_delay = 5
+
 """
 
 #Library import
@@ -13,6 +17,8 @@ import time
 import csv
 from sys import stdout
 import numpy as np
+from RPLCD import CharLCD, cleared, cursor
+
 
 #DAQ HATS Specific library
 from T_P_acq_func import *
@@ -50,19 +56,24 @@ trigger_pin = 17
 # Set up the GPIO pin as an input with an initial high state
 GPIO.setup(trigger_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
+#Initialisation of the lcd object from RPLCD library, to modify according to LCD current pinout
+lcd = CharLCD(pin_rs=19, pin_e=6, pins_data=[23, 24, 22, 27],
+			  numbering_mode=GPIO.BCM,
+			  cols=20, rows=4, dotsize=8,
+			  charmap='A02',
+			  auto_linebreaks=True)
+
 
 # Initialisation of data_array
 header = ['Index', 'Time', 'T1', 'T2', 'P1', 'P2'] # To modify as desired
 filename = 'data_single_read_trigger.csv'
 data_array = []
 
+
+#Initialisation of rising_edge_counter, indicate the index of the current measure
 rising_edge_counter = 0
 
-'''
-TO IMPLEMENT LATER WITH THREADING
-#Time after which the acquisition stops and the data is saved as a CSV, in seconds
-timeout_delay = 5
-'''
+
 
 #Function executed at each trigger event
 def trigger_callback(trigger_pin):
@@ -72,7 +83,6 @@ def trigger_callback(trigger_pin):
     Args:
         channel (int): The GPIO channel number that triggered the callback.
         
-        TD : Add timeout timer that exit the function and return the array and csv
     """
     
     global data_array
@@ -84,7 +94,6 @@ def trigger_callback(trigger_pin):
     if rising_edge_counter == 0:
         start_time = time.time()
     
-    
     relative_time = time.time() - start_time
     
     # Retrieve the current temperature and pressure measurement values
@@ -95,9 +104,11 @@ def trigger_callback(trigger_pin):
         data_array = [new_row]
     else:
         data_array.append(new_row)
-    print(rising_edge_counter)
+    
+    
     rising_edge_counter += 1
-
+    
+    print(rising_edge_counter)
 
 
 # Add the event detection for the falling edge of the trigger input

@@ -1,6 +1,6 @@
 from RPLCD import CharLCD, cleared, cursor
 import RPi.GPIO as GPIO
-from time import sleep
+import time
 
 
 lcd = CharLCD(pin_rs=19, pin_e=6, pins_data=[23, 24, 22, 27],
@@ -8,52 +8,61 @@ lcd = CharLCD(pin_rs=19, pin_e=6, pins_data=[23, 24, 22, 27],
 			  cols=20, rows=4, dotsize=8,
 			  charmap='A02',
 			  auto_linebreaks=True)
-	  
-'''
-while True:
-	lcd.write_string('Reda!')
-	lcd.cursor_pos = (1, 0)
-	lcd.write_string('Henri!')
-	lcd.cursor_pos = (2, 0)
-	lcd.write_string('Enrique!')
-	sleep(0.1)
+			  
+def display_temperature_and_pressure(N, T_hot, temperature1, temperature2, pressure1, pressure2):
+	# Clear the LCD screen
 	lcd.clear()
-	sleep(0.1)
-'''
 
-'''
+	# Format temperature and pressure strings
+	temperature1_str = "{:<1}={:>3.1f}".format("T1", temperature1)
+	temperature2_str = "{:<1}={:>3.1f}".format("T2", temperature2)
+	pressure1_str = "{:<1}={:>5.2f}".format("P1", pressure1)
+	pressure2_str = "{:<1}={:>5.2f}".format("P2", pressure2)
+	T_hot_str = "{:<1}={:>3.1f}".format("TH", T_hot)
+	ready_str = "IN>READY"
+	N_str = "{:<1}={:>4.0f}".format("N", N)
+
+	# Display temperature and pressure on the LCD screen
+	lcd.cursor_pos = (0, 0)
+	lcd.write_string(temperature1_str)
+
+	lcd.cursor_pos = (0, 10)
+	lcd.write_string(pressure1_str)
+
+	lcd.cursor_pos = (1, 0)
+	lcd.write_string(temperature2_str)
+
+	lcd.cursor_pos = (1, 10)
+	lcd.write_string(pressure2_str)
+
+	lcd.cursor_pos = (2, 0)
+	lcd.write_string(T_hot_str)
+
+	lcd.cursor_pos = (3, 0)
+	lcd.write_string(ready_str)
+
+	lcd.cursor_pos = (3, 10)
+	lcd.write_string(N_str)
+
+	  
 try:
-	while True:	  
-		lcd.write_string('Reda!')
-		lcd.cursor_pos = (1, 0)
-		lcd.write_string('Henri!')
-		lcd.cursor_pos = (2, 0)
-		lcd.write_string('Enrique!')
-		#sleep(0.1)
-		#lcd.clear()
-		#sleep(0.1)
-'''
+	# Example usage
+	temperature1 = 23.1
+	temperature2 = 24.6
+	pressure1 = 152.12
+	pressure2 = 123.23
+	N = 1
+	T_hot = 35.3
 
-smiley = (
-    0b00000,
-    0b01010,
-    0b01010,
-    0b00000,
-    0b10001,
-    0b10001,
-    0b01110,
-    0b00000,
-)
+	display_temperature_and_pressure(N, T_hot, temperature1, temperature2, pressure1, pressure2)
 
-lcd.create_char(0, smiley)
-lcd.write_string(unichr(0))
+	# Wait for 5 seconds before clearing the LCD screen
+	time.sleep(1000)
+	lcd.clear()
 
-try:
-	while True:	
-		pass
-
+		
 
 except KeyboardInterrupt:
     print("Exiting...")
-    lcd.clear()
+    lcd.close(clear=True)
     GPIO.cleanup()

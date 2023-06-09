@@ -5,6 +5,7 @@ from sys import stdout
 import numpy as np
 from datetime import datetime
 import RPi.GPIO as GPIO
+from RPLCD import CharLCD, cleared, cursor
 
 
 from daqhats import mcc128, OptionFlags, mcc134, HatIDs, HatError, TcTypes, AnalogInputMode, AnalogInputRange
@@ -323,7 +324,7 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, 
         print('\n', error)
         GPIO.cleanup() #Needed in order to clear GPIO pin assignement
 
-
+def LCD_print_T_P()
         
 def csv_data_reader(file_name = "data.csv", terminal_output = False):
     
@@ -434,7 +435,10 @@ def get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)):
 
 
 
-def update_T_P_array(hat_134, hat_128, data_array, relative_time, channels_T=(0, 1), channels_P=(0, 1)):
+'''
+THIS FUNCTION DOESNT WORK BECAUSE I DON'T FIND A WAY TO MODIFY IN PLACE DATA_ARRAY
+
+def update_T_P_array(hat_134, hat_128, relative_time, rising_edge_counter, start_time, channels_T=(0, 1), channels_P=(0, 1)):
     """
     Appends new temperature (T) and pressure (P) values, along with the time of measurement, to the data array.
 
@@ -449,17 +453,20 @@ def update_T_P_array(hat_134, hat_128, data_array, relative_time, channels_T=(0,
     Returns:
         list: Updated data array with the new measurement values appended.
     """
-
+    
+    global data_array
+    
     # Retrieve the current temperature and pressure measurement values
-    new_row = get_current_T_P(hat_134, hat_128, channels_T, channels_P) + [relative_time]
-
+    new_row = [rising_edge_counter] + [relative_time] + get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1))
+    
     # If the array is empty (first measurement), create a new array with the first measurement
-    if not data_array:
+    if data_array == []:
         data_array = [new_row]
     else:
         data_array.append(new_row)
-
-    #return data_array
+        
+'''
+    
 
 
 
