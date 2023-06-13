@@ -306,7 +306,7 @@ def LCD_print_in_acquisition(lcd, N, T_hot, temperature1, temperature2, pressure
 
 
 
-def T_P_disp(lcd, rising_edge_counter, T_hot, channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, alarm_on = True, pressure_alarm = 150, terminal_output = True, lcd_output = False):
+def T_P_disp(lcd, T_hot, channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, alarm_on = True, pressure_alarm = 150, terminal_output = True, lcd_output = False):
     """
     TD : ADD FLAG TERMINAL OUTPUT IN THE CODE
     

@@ -123,7 +123,8 @@ try:
         #Function that display T and P data continuoulsy, Pressure alarm in bar
         #Need to pay attention to the refresh rate COMPARED TO acquisition rate
         T_P_disp(lcd, T_hot, channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.5, alarm_on = False, pressure_alarm = 130, terminal_output = True, lcd_output = True)
-        print(rising_edge_counter)
+
+
 
 except KeyboardInterrupt:
     # Save data array as a csv, print it if you want and clean data_array
