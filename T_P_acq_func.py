@@ -233,20 +233,95 @@ def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_mea
         GPIO.cleanup() #Needed in order to clear GPIO pin assignement
 
 
+def LCD_print_in_monitoring(lcd, T_hot, temperature1, temperature2, pressure1, pressure2):
+    # Clear the LCD screen
+	lcd.clear()
+
+	# Format temperature and pressure strings
+	temperature1_str = "{:<1}={:>3.1f}".format("T1", temperature1)
+	temperature2_str = "{:<1}={:>3.1f}".format("T2", temperature2)
+	pressure1_str = "{:<1}={:>5.2f}".format("P1", pressure1)
+	pressure2_str = "{:<1}={:>5.2f}".format("P2", pressure2)
+	T_hot_str = "{:<1}={:>3.1f}".format("TH", T_hot)
+	ready_str = "IN>READY"
+
+	# Display temperature and pressure on the LCD screen
+	lcd.cursor_pos = (0, 0)
+	lcd.write_string(temperature1_str)
+
+	lcd.cursor_pos = (0, 10)
+	lcd.write_string(pressure1_str)
+
+	lcd.cursor_pos = (1, 0)
+	lcd.write_string(temperature2_str)
+
+	lcd.cursor_pos = (1, 10)
+	lcd.write_string(pressure2_str)
+
+	lcd.cursor_pos = (2, 0)
+	lcd.write_string(T_hot_str)
+
+	lcd.cursor_pos = (3, 0)
+	lcd.write_string(ready_str)
 
 
 
 
-def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, alarm_on = True, pressure_alarm = 150):
+def LCD_print_in_acquisition(lcd, N, T_hot, temperature1, temperature2, pressure1, pressure2):
+    # Clear the LCD screen
+	lcd.clear()
+
+	# Format temperature and pressure strings
+	temperature1_str = "{:<1}={:>3.1f}".format("T1", temperature1)
+	temperature2_str = "{:<1}={:>3.1f}".format("T2", temperature2)
+	pressure1_str = "{:<1}={:>5.2f}".format("P1", pressure1)
+	pressure2_str = "{:<1}={:>5.2f}".format("P2", pressure2)
+	T_hot_str = "{:<1}={:>3.1f}".format("TH", T_hot)
+	ready_str = "IN>ACQ"
+	N_str = "{:<1}={:>4.0f}".format("N", N)
+
+	# Display temperature and pressure on the LCD screen
+	lcd.cursor_pos = (0, 0)
+	lcd.write_string(temperature1_str)
+
+	lcd.cursor_pos = (0, 10)
+	lcd.write_string(pressure1_str)
+
+	lcd.cursor_pos = (1, 0)
+	lcd.write_string(temperature2_str)
+
+	lcd.cursor_pos = (1, 10)
+	lcd.write_string(pressure2_str)
+
+	lcd.cursor_pos = (2, 0)
+	lcd.write_string(T_hot_str)
+
+	lcd.cursor_pos = (3, 0)
+	lcd.write_string(ready_str)
+
+	lcd.cursor_pos = (3, 10)
+	lcd.write_string(N_str)
+
+
+
+
+
+def T_P_disp(lcd, rising_edge_counter, T_hot, channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, alarm_on = True, pressure_alarm = 150, terminal_output = True, lcd_output = False):
     """
+    TD : ADD FLAG TERMINAL OUTPUT IN THE CODE
+    
     Displays real-time Temperature and Pressure data from sensors on MC134 and MC128.
 
     Args:
+        lcd (object): object of CharLCD class
+        T_hot (float): Temperature of the hot wall of the channel
         channels_134 (tuple, optional): Sensors channels on MC134. Defaults to (0, 1).
         channels_128 (tuple, optional): Sensors channels on MC128. Defaults to (0, 1).
         delay_between_reads (float, optional): Delay between sensor readings in seconds. Defaults to 0.1.
         alarm_on (bool, optional):  Wheter to activate the safety alarm. Default to True
         pressure_alarm (float, optional): Pressure alarm threshold. Default to 130 bars
+        terminal_output (bool, optional): Whether to display terminal output, ie here real time T and P values as well as acquisition parameters. Defaults to True.
+        lcd_output (bool, optional): Whether to display lcd output, ie here real time T and P values as well as acquisition parameters. Defaults to True.
     """
     import datetime
 
@@ -271,7 +346,7 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, 
         # Writes the thermocouple type in MC134 memory
         for channel in channels_134:
             hat_134.tc_type_write(channel, tc_type)
-
+        
         # Display the header row for the data table.
         for channel in channels_128:
             print('     Channel Temperature', channel, end='')
@@ -279,7 +354,10 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, 
             print('     Channel Pressure', channel, end='')
         print('')
 
+
         while True:
+            pressures = []
+            temperatures = []
             no_sound_alarm()
             no_system_shutdown()
             
@@ -295,6 +373,8 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, 
                     print('   Common Mode', end='')
                 else:
                     print('{:12.2f} C'.format(value_T), end='')
+                    
+                temperatures.append(value_T)
                     
             # Pressure measurement
             for channel in channels_128:
@@ -316,7 +396,11 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, 
                     print('{:12.2f} bar'.format(value_P_bar), end='\r')
                 else:
                     print('{:12.2f} bar'.format(value_P_bar), end='')
-
+                
+                pressures.append(value_P_bar)
+                
+            
+            LCD_print_in_monitoring(lcd, T_hot, temperatures[0], temperatures[1], pressures[0], pressures[1])
             stdout.flush()
             sleep(delay_between_reads)
 
@@ -324,7 +408,7 @@ def T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, 
         print('\n', error)
         GPIO.cleanup() #Needed in order to clear GPIO pin assignement
 
-def LCD_print_T_P()
+
         
 def csv_data_reader(file_name = "data.csv", terminal_output = False):
     

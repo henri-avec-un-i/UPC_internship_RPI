@@ -69,6 +69,7 @@ header = ['Index', 'Time', 'T1', 'T2', 'P1', 'P2'] # To modify as desired
 filename = 'data_single_read_trigger.csv'
 data_array = []
 
+T_hot = 50 # Hot wall temperature, to specify, in Celcius 
 
 #Initialisation of rising_edge_counter, indicate the index of the current measure
 rising_edge_counter = 0
@@ -108,7 +109,7 @@ def trigger_callback(trigger_pin):
     
     rising_edge_counter += 1
     
-    print(rising_edge_counter)
+    #print(rising_edge_counter)
 
 
 # Add the event detection for the falling edge of the trigger input
@@ -121,8 +122,8 @@ try:
     while True:
         #Function that display T and P data continuoulsy, Pressure alarm in bar
         #Need to pay attention to the refresh rate COMPARED TO acquisition rate
-        T_P_disp(channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.001, alarm_on = False, pressure_alarm = 130)
-
+        T_P_disp(lcd, T_hot, channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.5, alarm_on = False, pressure_alarm = 130, terminal_output = True, lcd_output = True)
+        print(rising_edge_counter)
 
 except KeyboardInterrupt:
     # Save data array as a csv, print it if you want and clean data_array
