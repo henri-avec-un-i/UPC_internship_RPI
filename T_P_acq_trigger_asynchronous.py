@@ -1,3 +1,11 @@
+"""
+
+With current synchronization signal from sync box, this script doesn't work. Need a single trigger signal at the beginning of the acquisition in order to work properly,
+not a trigger signal at each frame
+
+"""
+
+
 import RPi.GPIO as GPIO
 from T_P_acq_func import T_P_acq_csv, T_P_disp
 

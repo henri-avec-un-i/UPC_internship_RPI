@@ -26,6 +26,12 @@ from daqhats import mcc128, OptionFlags, mcc134, HatIDs, HatError, TcTypes, Anal
 from daqhats_utils import select_hat_device, tc_type_to_string, \
 enum_mask_to_string, input_mode_to_string, input_range_to_string #This needs to be in the same folders as this script
 
+"""
+
+Docstring here
+
+"""
+
 
 ### MCC HATS INITIALISATION
 # Initialisation of MC128
