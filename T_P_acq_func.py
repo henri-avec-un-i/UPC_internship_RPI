@@ -14,13 +14,14 @@ enum_mask_to_string, input_mode_to_string, input_range_to_string #daqhats_utils 
 
 """
 Purpose:
-    Contain the different functions used for P and T data acquisition.
+    Contain the different functions used for Pressure and Temperature data monitoring and acquisition.
 
 """
 
-
+### GPIO pins set up
 # Set the GPIO mode to BCM
 GPIO.setmode(GPIO.BCM)
+
 
 # Define the GPIO pins number
 alarm_pin = 27
@@ -32,9 +33,11 @@ GPIO.setup(system_shutdown_pin, GPIO.OUT)
 
 
 
+
+
 def sound_alarm():
     """
-    Rings a sound alarm, to complete
+    Rings a sound alarm, e.g. when pressure gets to high, to complete
 
     Args: to complete
 

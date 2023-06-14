@@ -59,8 +59,12 @@ GPIO.setmode(GPIO.BCM)
 # Define the GPIO pin number
 trigger_pin = 17
 
+
 # Set up the GPIO pin as an input with an initial high state
 GPIO.setup(trigger_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+
+
 
 #Initialisation of the lcd object from RPLCD library, to modify according to LCD current pinout
 lcd = CharLCD(pin_rs=19, pin_e=6, pins_data=[23, 24, 22, 27],

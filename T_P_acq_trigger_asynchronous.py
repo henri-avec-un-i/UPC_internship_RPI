@@ -29,6 +29,7 @@ GPIO.setmode(GPIO.BCM)
 trigger_pin = 17
 
 
+
 # Set up the GPIO pin as an input with an initial high state
 GPIO.setup(trigger_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
