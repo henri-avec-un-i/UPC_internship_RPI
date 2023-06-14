@@ -42,6 +42,7 @@ input_mode = AnalogInputMode.SE
 input_range = AnalogInputRange.BIP_5V
 hat_128.a_in_mode_write(input_mode)
 hat_128.a_in_range_write(input_range)
+channels_T = channels_128
 
 # Initialisation of MC134
 channels_134=(0, 1)
@@ -50,7 +51,7 @@ hat_134 = mcc134(address_134)
 tc_type = TcTypes.TYPE_K
 for chan in channels_134:
     hat_134.tc_type_write(chan, tc_type)
-
+channels_P = channels_134
 
 ### GPIO pins set up
 # Set the GPIO mode to BCM
@@ -81,6 +82,8 @@ data_array = []
 
 T_hot = 50 # Hot wall temperature, to specify, in Celcius 
 
+pressure_alarm = 130 #Pressure alarm threshold for alarm and system shutdown
+
 #Initialisation of rising_edge_counter, indicate the index of the current measure
 rising_edge_counter = 0
 
@@ -108,7 +111,7 @@ def trigger_callback(trigger_pin):
     relative_time = time.time() - start_time
     
     # Retrieve the current temperature and pressure measurement values
-    new_row = [rising_edge_counter] + [relative_time] + get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1))
+    new_row = [rising_edge_counter] + [relative_time] + get_current_T_P(hat_134, hat_128, pressure_alarm, channels_T, channels_P)
     
     # If the array is empty (first measurement), create a new array with the first measurement
     if data_array == []:

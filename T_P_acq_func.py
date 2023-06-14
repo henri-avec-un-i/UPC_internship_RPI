@@ -35,7 +35,6 @@ Initialisation of constants, variables and objects
 # Set the GPIO mode to BCM
 GPIO.setmode(GPIO.BCM)
 
-
 # Define the GPIO pins number
 alarm_pin = 27
 system_shutdown_pin = 22
@@ -43,6 +42,9 @@ system_shutdown_pin = 22
 # Set up the GPIO pins as an output
 GPIO.setup(alarm_pin, GPIO.OUT)
 GPIO.setup(system_shutdown_pin, GPIO.OUT)
+
+### Linear conversion coefficient for Volt_bar func
+slope, offset = 50, 0 # bar_value = volt_value * slope + offset
 
 
 ################################################
@@ -106,14 +108,14 @@ def no_system_shutdown():
 Utility functions
 """
 
-def volt_to_bar(volt_value, slope=50, offset=0):
+def volt_to_bar(volt_value, slope, offset):
     """
     Converts a voltage value to a bar value using linear conversion.
 
     Args:
         volt_value (float): The voltage value to convert.
-        slope (float, optional): The slope coefficient for the linear conversion. Defaults to 50. To precise through calibration
-        offset (float, optional): The offset coefficient for the linear conversion. Defaults to 0.
+        slope (float, optional): The slope coefficient for the linear conversion. To precise through calibration
+        offset (float, optional): The offset coefficient for the linear conversion. To precise through calibration
 
     Returns:
         float: The bar value converted from the voltage value.
@@ -124,10 +126,7 @@ def volt_to_bar(volt_value, slope=50, offset=0):
     return bar_value
 
 
-
-
-
-def get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)):
+def get_current_T_P(hat_134, hat_128, pressure_alarm, channels_T, channels_P):
     """
     
     TD : Add high pressure alarm function call here also
@@ -137,8 +136,9 @@ def get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)):
     Parameters:
         hat_134 (object): An MCC 134 object (mcc134 class) used to measure temperature.
         hat_128 (object): An MCC 128 object (mcc128 class) used to measure pressure.
-        channels_T (tuple): A tuple containing the channels MCC 134 from which temperature values should be read. Defaults to (0, 1).
-        channels_P (tuple): A tuple containing the channels of the MCC 128 from which pressure values should be read. Defaults to (0, 1).
+        pressure_alarm (float): Pressure threshold for safety alarm and system shutdown
+        channels_T (tuple): A tuple containing the channels MCC 134 from which temperature values should be read. 
+        channels_P (tuple): A tuple containing the channels of the MCC 128 from which pressure values should be read. 
 
     Returns:
         list: A list containing the retrieved temperature and pressure values at the time that the function is called.
@@ -151,7 +151,14 @@ def get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)):
         T_values.append(hat_134.t_in_read(channel))
     
     for channel in channels_P:
-        P_values.append(volt_to_bar(hat_128.a_in_read(channel)))
+        P = volt_to_bar(hat_128.a_in_read(channel))
+        P_values.append(P)
+        if P > pressure_alarm:
+            sound_alarm()
+            system_shutdown()
+        else:
+            no_sound_alarm()
+            no_system_shutdown()
     
     new_T_P_values = T_values + P_values
     
