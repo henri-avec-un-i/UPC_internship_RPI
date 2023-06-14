@@ -1,4 +1,17 @@
-from __future__ import print_function
+from __future__ import print_function #Must be at the beginning of the file for some reasons
+
+################################################
+"""
+Purpose:
+    Contain the different functions used for Pressure and Temperature data monitoring and acquisition.
+
+"""
+
+################################################
+"""
+Imports
+"""
+
 import csv
 from time import sleep
 from sys import stdout
@@ -12,10 +25,10 @@ from daqhats import mcc128, OptionFlags, mcc134, HatIDs, HatError, TcTypes, Anal
 from daqhats_utils import select_hat_device, tc_type_to_string, \
 enum_mask_to_string, input_mode_to_string, input_range_to_string #daqhats_utils needs to be in the same folders as this script
 
-"""
-Purpose:
-    Contain the different functions used for Pressure and Temperature data monitoring and acquisition.
 
+################################################
+"""
+Initialisation of constants, variables and objects
 """
 
 ### GPIO pins set up
@@ -32,9 +45,10 @@ GPIO.setup(alarm_pin, GPIO.OUT)
 GPIO.setup(system_shutdown_pin, GPIO.OUT)
 
 
-
-
-
+################################################
+"""
+Safety Functions
+"""
 def sound_alarm():
     """
     Rings a sound alarm, e.g. when pressure gets to high, to complete
@@ -84,7 +98,13 @@ def no_system_shutdown():
     """
     #set stop system digital output pin to low
     GPIO.output(system_shutdown_pin, GPIO.LOW)
+    
+    
+################################################
 
+"""
+Utility functions
+"""
 
 def volt_to_bar(volt_value, slope=50, offset=0):
     """
@@ -104,6 +124,198 @@ def volt_to_bar(volt_value, slope=50, offset=0):
     return bar_value
 
 
+
+
+
+def get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)):
+    """
+    
+    TD : Add high pressure alarm function call here also
+    
+    Retrieves current temperature and pressure values from specified channels of MCC 128 and MCC 134.
+
+    Parameters:
+        hat_134 (object): An MCC 134 object (mcc134 class) used to measure temperature.
+        hat_128 (object): An MCC 128 object (mcc128 class) used to measure pressure.
+        channels_T (tuple): A tuple containing the channels MCC 134 from which temperature values should be read. Defaults to (0, 1).
+        channels_P (tuple): A tuple containing the channels of the MCC 128 from which pressure values should be read. Defaults to (0, 1).
+
+    Returns:
+        list: A list containing the retrieved temperature and pressure values at the time that the function is called.
+    """
+    
+    T_values = []
+    P_values = []
+    
+    for channel in channels_T:
+        T_values.append(hat_134.t_in_read(channel))
+    
+    for channel in channels_P:
+        P_values.append(volt_to_bar(hat_128.a_in_read(channel)))
+    
+    new_T_P_values = T_values + P_values
+    
+    return new_T_P_values
+
+
+################################################
+"""
+CSV Read and Write functions
+"""
+        
+def csv_data_reader(file_name = "data.csv", terminal_output = False):
+    
+    """
+    Reads data from a data CSV file and returns acquisition parameters, column headers, and data as arrays.
+
+    Args:
+        file_name (str): The name of the CSV file to read. Default is "data.csv".
+        terminal_output (bool): Flag to determine whether to print the acquired data to the terminal.
+                               Default is False.
+
+    Returns:
+        tuple: A tuple containing the acquisition parameters, column headers, and data as arrays.
+
+    """
+    
+    # Specify the path to the CSV file
+    csv_file = file_name
+
+    # Initialize empty arrays for acquisition parameters, headers, and data
+    acquisition_params = []
+    column_headers = []
+    data = []
+
+    # Read the CSV file
+    with open(csv_file, "r") as file:
+        reader = csv.reader(file)
+
+        # Extract the acquisition parameters from the first line
+        acquisition_params = next(reader)
+
+        # Extract the headers from the second line
+        column_headers = next(reader)
+
+        # Read the rest of the lines as data
+        data = list(reader)
+    
+    if terminal_output:
+        # Print the arrays if terminal_output == True
+        print("Acquisition Parameters:", acquisition_params)
+        print("Column Headers:", column_headers)
+        print("Data:")
+        for row in data:
+            print(row)
+
+    return acquisition_params, column_headers, np.array(data)
+    
+
+def save_data_to_csv(data, header, filename):
+    """
+    Save the data array (list of list) as a CSV file with a specified header.
+
+    Args:
+        data (list): The data array to be saved as CSV.
+        header (list): The header row for the CSV file.
+        filename (str): The name of the CSV file to be created.
+
+    Returns:
+        None
+    """
+
+    # Open the file in write mode with newline=''
+    with open(filename, 'w', newline='') as csvfile:
+        # Create a CSV writer object
+        writer = csv.writer(csvfile)
+        
+        # Write the header row
+        writer.writerow(header)
+        
+        # Write the data rows
+        writer.writerows(data)
+
+    print(f"CSV file '{filename}' saved successfully.")
+
+################################################
+
+"""
+LCD Display functions
+"""
+
+def LCD_print_in_monitoring(lcd, T_hot, temperature1, temperature2, pressure1, pressure2):
+    # Clear the LCD screen
+	lcd.clear()
+
+	# Format temperature and pressure strings
+	temperature1_str = "{:<1}={:>3.1f}".format("T1", temperature1)
+	temperature2_str = "{:<1}={:>3.1f}".format("T2", temperature2)
+	pressure1_str = "{:<1}={:>5.2f}".format("P1", pressure1)
+	pressure2_str = "{:<1}={:>5.2f}".format("P2", pressure2)
+	T_hot_str = "{:<1}={:>3.1f}".format("TH", T_hot)
+	ready_str = "IN>READY"
+
+	# Display temperature and pressure on the LCD screen
+	lcd.cursor_pos = (0, 0)
+	lcd.write_string(temperature1_str)
+
+	lcd.cursor_pos = (0, 10)
+	lcd.write_string(pressure1_str)
+
+	lcd.cursor_pos = (1, 0)
+	lcd.write_string(temperature2_str)
+
+	lcd.cursor_pos = (1, 10)
+	lcd.write_string(pressure2_str)
+
+	lcd.cursor_pos = (2, 0)
+	lcd.write_string(T_hot_str)
+
+	lcd.cursor_pos = (3, 0)
+	lcd.write_string(ready_str)
+
+
+
+
+def LCD_print_in_acquisition(lcd, N, T_hot, temperature1, temperature2, pressure1, pressure2):
+    # Clear the LCD screen
+	lcd.clear()
+
+	# Format temperature and pressure strings
+	temperature1_str = "{:<1}={:>3.1f}".format("T1", temperature1)
+	temperature2_str = "{:<1}={:>3.1f}".format("T2", temperature2)
+	pressure1_str = "{:<1}={:>5.2f}".format("P1", pressure1)
+	pressure2_str = "{:<1}={:>5.2f}".format("P2", pressure2)
+	T_hot_str = "{:<1}={:>3.1f}".format("TH", T_hot)
+	ready_str = "IN>ACQ"
+	N_str = "{:<1}={:>4.0f}".format("N", N)
+
+	# Display temperature and pressure on the LCD screen
+	lcd.cursor_pos = (0, 0)
+	lcd.write_string(temperature1_str)
+
+	lcd.cursor_pos = (0, 10)
+	lcd.write_string(pressure1_str)
+
+	lcd.cursor_pos = (1, 0)
+	lcd.write_string(temperature2_str)
+
+	lcd.cursor_pos = (1, 10)
+	lcd.write_string(pressure2_str)
+
+	lcd.cursor_pos = (2, 0)
+	lcd.write_string(T_hot_str)
+
+	lcd.cursor_pos = (3, 0)
+	lcd.write_string(ready_str)
+
+	lcd.cursor_pos = (3, 10)
+	lcd.write_string(N_str)
+
+
+################################################
+"""
+Main acquisition and display functions
+"""
 
 def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_measures=10, terminal_output=True,
                 data_filename="data.csv", alarm_on = True, pressure_alarm = 130):
@@ -236,79 +448,6 @@ def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_mea
         GPIO.cleanup() #Needed in order to clear GPIO pin assignement
 
 
-def LCD_print_in_monitoring(lcd, T_hot, temperature1, temperature2, pressure1, pressure2):
-    # Clear the LCD screen
-	lcd.clear()
-
-	# Format temperature and pressure strings
-	temperature1_str = "{:<1}={:>3.1f}".format("T1", temperature1)
-	temperature2_str = "{:<1}={:>3.1f}".format("T2", temperature2)
-	pressure1_str = "{:<1}={:>5.2f}".format("P1", pressure1)
-	pressure2_str = "{:<1}={:>5.2f}".format("P2", pressure2)
-	T_hot_str = "{:<1}={:>3.1f}".format("TH", T_hot)
-	ready_str = "IN>READY"
-
-	# Display temperature and pressure on the LCD screen
-	lcd.cursor_pos = (0, 0)
-	lcd.write_string(temperature1_str)
-
-	lcd.cursor_pos = (0, 10)
-	lcd.write_string(pressure1_str)
-
-	lcd.cursor_pos = (1, 0)
-	lcd.write_string(temperature2_str)
-
-	lcd.cursor_pos = (1, 10)
-	lcd.write_string(pressure2_str)
-
-	lcd.cursor_pos = (2, 0)
-	lcd.write_string(T_hot_str)
-
-	lcd.cursor_pos = (3, 0)
-	lcd.write_string(ready_str)
-
-
-
-
-def LCD_print_in_acquisition(lcd, N, T_hot, temperature1, temperature2, pressure1, pressure2):
-    # Clear the LCD screen
-	lcd.clear()
-
-	# Format temperature and pressure strings
-	temperature1_str = "{:<1}={:>3.1f}".format("T1", temperature1)
-	temperature2_str = "{:<1}={:>3.1f}".format("T2", temperature2)
-	pressure1_str = "{:<1}={:>5.2f}".format("P1", pressure1)
-	pressure2_str = "{:<1}={:>5.2f}".format("P2", pressure2)
-	T_hot_str = "{:<1}={:>3.1f}".format("TH", T_hot)
-	ready_str = "IN>ACQ"
-	N_str = "{:<1}={:>4.0f}".format("N", N)
-
-	# Display temperature and pressure on the LCD screen
-	lcd.cursor_pos = (0, 0)
-	lcd.write_string(temperature1_str)
-
-	lcd.cursor_pos = (0, 10)
-	lcd.write_string(pressure1_str)
-
-	lcd.cursor_pos = (1, 0)
-	lcd.write_string(temperature2_str)
-
-	lcd.cursor_pos = (1, 10)
-	lcd.write_string(pressure2_str)
-
-	lcd.cursor_pos = (2, 0)
-	lcd.write_string(T_hot_str)
-
-	lcd.cursor_pos = (3, 0)
-	lcd.write_string(ready_str)
-
-	lcd.cursor_pos = (3, 10)
-	lcd.write_string(N_str)
-
-
-
-
-
 def T_P_disp(lcd, T_hot, channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, alarm_on = True, pressure_alarm = 150, terminal_output = True, lcd_output = False):
     """
     TD : ADD FLAG TERMINAL OUTPUT IN THE CODE
@@ -411,114 +550,8 @@ def T_P_disp(lcd, T_hot, channels_134=(0, 1), channels_128=(0, 1), delay_between
         print('\n', error)
         GPIO.cleanup() #Needed in order to clear GPIO pin assignement
 
+################################################
 
-        
-def csv_data_reader(file_name = "data.csv", terminal_output = False):
-    
-    """
-    Reads data from a data CSV file and returns acquisition parameters, column headers, and data as arrays.
-
-    Args:
-        file_name (str): The name of the CSV file to read. Default is "data.csv".
-        terminal_output (bool): Flag to determine whether to print the acquired data to the terminal.
-                               Default is False.
-
-    Returns:
-        tuple: A tuple containing the acquisition parameters, column headers, and data as arrays.
-
-    """
-    
-    # Specify the path to the CSV file
-    csv_file = file_name
-
-    # Initialize empty arrays for acquisition parameters, headers, and data
-    acquisition_params = []
-    column_headers = []
-    data = []
-
-    # Read the CSV file
-    with open(csv_file, "r") as file:
-        reader = csv.reader(file)
-
-        # Extract the acquisition parameters from the first line
-        acquisition_params = next(reader)
-
-        # Extract the headers from the second line
-        column_headers = next(reader)
-
-        # Read the rest of the lines as data
-        data = list(reader)
-    
-    if terminal_output:
-        # Print the arrays if terminal_output == True
-        print("Acquisition Parameters:", acquisition_params)
-        print("Column Headers:", column_headers)
-        print("Data:")
-        for row in data:
-            print(row)
-
-    return acquisition_params, column_headers, np.array(data)
-    
-
-def save_data_to_csv(data, header, filename):
-    """
-    Save the data array (list of list) as a CSV file with a specified header.
-
-    Args:
-        data (list): The data array to be saved as CSV.
-        header (list): The header row for the CSV file.
-        filename (str): The name of the CSV file to be created.
-
-    Returns:
-        None
-    """
-
-    # Open the file in write mode with newline=''
-    with open(filename, 'w', newline='') as csvfile:
-        # Create a CSV writer object
-        writer = csv.writer(csvfile)
-        
-        # Write the header row
-        writer.writerow(header)
-        
-        # Write the data rows
-        writer.writerows(data)
-
-    print(f"CSV file '{filename}' saved successfully.")
-
-
-
-
-
-def get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1)):
-    """
-    
-    TD : Add high pressure alarm function call here also
-    
-    Retrieves current temperature and pressure values from specified channels of MCC 128 and MCC 134.
-
-    Parameters:
-        hat_134 (object): An MCC 134 object (mcc134 class) used to measure temperature.
-        hat_128 (object): An MCC 128 object (mcc128 class) used to measure pressure.
-        channels_T (tuple): A tuple containing the channels MCC 134 from which temperature values should be read. Defaults to (0, 1).
-        channels_P (tuple): A tuple containing the channels of the MCC 128 from which pressure values should be read. Defaults to (0, 1).
-
-    Returns:
-        list: A list containing the retrieved temperature and pressure values at the time that the function is called.
-    """
-    
-    T_values = []
-    P_values = []
-    
-    for channel in channels_T:
-        T_values.append(hat_134.t_in_read(channel))
-    
-    for channel in channels_P:
-        P_values.append(volt_to_bar(hat_128.a_in_read(channel)))
-    
-    new_T_P_values = T_values + P_values
-    
-    return new_T_P_values
 
 
 
