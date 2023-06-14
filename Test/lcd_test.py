@@ -9,7 +9,7 @@ lcd = CharLCD(pin_rs=19, pin_e=6, pins_data=[23, 24, 22, 27],
 			  charmap='A02',
 			  auto_linebreaks=True)
 			  
-def display_temperature_and_pressure(N, T_hot, temperature1, temperature2, pressure1, pressure2):
+def display_temperature_and_pressure(N, T_hot_wall, temperature1, temperature2, pressure1, pressure2):
 	# Clear the LCD screen
 	lcd.clear()
 
@@ -18,7 +18,7 @@ def display_temperature_and_pressure(N, T_hot, temperature1, temperature2, press
 	temperature2_str = "{:<1}={:>3.1f}".format("T2", temperature2)
 	pressure1_str = "{:<1}={:>5.2f}".format("P1", pressure1)
 	pressure2_str = "{:<1}={:>5.2f}".format("P2", pressure2)
-	T_hot_str = "{:<1}={:>3.1f}".format("TH", T_hot)
+	T_hot_wall_str = "{:<1}={:>3.1f}".format("TH", T_hot_wall)
 	ready_str = "IN>READY"
 	N_str = "{:<1}={:>4.0f}".format("N", N)
 
@@ -36,7 +36,7 @@ def display_temperature_and_pressure(N, T_hot, temperature1, temperature2, press
 	lcd.write_string(pressure2_str)
 
 	lcd.cursor_pos = (2, 0)
-	lcd.write_string(T_hot_str)
+	lcd.write_string(T_hot_wall_str)
 
 	lcd.cursor_pos = (3, 0)
 	lcd.write_string(ready_str)
@@ -52,9 +52,9 @@ try:
 	pressure1 = 152.12
 	pressure2 = 123.23
 	N = 1
-	T_hot = 35.3
+	T_hot_wall = 35.3
 
-	display_temperature_and_pressure(N, T_hot, temperature1, temperature2, pressure1, pressure2)
+	display_temperature_and_pressure(N, T_hot_wall, temperature1, temperature2, pressure1, pressure2)
 
 	# Wait for 5 seconds before clearing the LCD screen
 	time.sleep(1000)

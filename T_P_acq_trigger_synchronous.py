@@ -66,7 +66,6 @@ GPIO.setup(trigger_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 
 
-
 #Initialisation of the lcd object from RPLCD library, to modify according to LCD current pinout
 lcd = CharLCD(pin_rs=19, pin_e=6, pins_data=[23, 24, 22, 27],
 			  numbering_mode=GPIO.BCM,
@@ -80,7 +79,7 @@ header = ['Index', 'Time', 'T1', 'T2', 'P1', 'P2'] # To modify as desired
 filename = 'data_single_read_trigger.csv'
 data_array = []
 
-T_hot = 50 # Hot wall temperature, to specify, in Celcius 
+T_hot_wall = 50 # Hot wall temperature, to specify, in Celcius 
 
 pressure_alarm = 130 #Pressure alarm threshold for alarm and system shutdown
 
@@ -135,7 +134,7 @@ try:
     while True:
         #Function that display T and P data continuoulsy, Pressure alarm in bar
         #Need to pay attention to the refresh rate COMPARED TO acquisition rate
-        T_P_disp(lcd, T_hot, channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.5, alarm_on = False, pressure_alarm = 130, terminal_output = True, lcd_output = True)
+        T_P_disp(lcd, T_hot_wall, channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.5, alarm_on = False, pressure_alarm = 130, terminal_output = True, lcd_output = True)
 
 
 

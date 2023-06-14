@@ -43,7 +43,7 @@ system_shutdown_pin = 22
 GPIO.setup(alarm_pin, GPIO.OUT)
 GPIO.setup(system_shutdown_pin, GPIO.OUT)
 
-### Linear conversion coefficient for Volt_bar func
+### Linear conversion coefficient for Volt_bar func, to adjust later on with calibration protocol and/or functions
 slope, offset = 50, 0 # bar_value = volt_value * slope + offset
 
 
@@ -128,10 +128,9 @@ def volt_to_bar(volt_value, slope, offset):
 
 def get_current_T_P(hat_134, hat_128, pressure_alarm, channels_T, channels_P):
     """
-    
-    TD : Add high pressure alarm function call here also
-    
+        
     Retrieves current temperature and pressure values from specified channels of MCC 128 and MCC 134.
+    Shutdown system and rings alarm if pressure is getting to higj, ie. above pressure_alarm threshold
 
     Parameters:
         hat_134 (object): An MCC 134 object (mcc134 class) used to measure temperature.
@@ -141,7 +140,7 @@ def get_current_T_P(hat_134, hat_128, pressure_alarm, channels_T, channels_P):
         channels_P (tuple): A tuple containing the channels of the MCC 128 from which pressure values should be read. 
 
     Returns:
-        list: A list containing the retrieved temperature and pressure values at the time that the function is called.
+        current_T_P_values (list): A list containing the retrieved temperature and pressure values at the time that the function is called.
     """
     
     T_values = []
@@ -160,9 +159,9 @@ def get_current_T_P(hat_134, hat_128, pressure_alarm, channels_T, channels_P):
             no_sound_alarm()
             no_system_shutdown()
     
-    new_T_P_values = T_values + P_values
+    current_T_P_values = T_values + P_values
     
-    return new_T_P_values
+    return current_T_P_values
 
 
 ################################################
@@ -170,13 +169,13 @@ def get_current_T_P(hat_134, hat_128, pressure_alarm, channels_T, channels_P):
 CSV Read and Write functions
 """
         
-def csv_data_reader(file_name = "data.csv", terminal_output = False):
+def csv_data_reader(file_name, terminal_output = True):
     
     """
     Reads data from a data CSV file and returns acquisition parameters, column headers, and data as arrays.
 
     Args:
-        file_name (str): The name of the CSV file to read. Default is "data.csv".
+        file_name (str): The name of the CSV file to read.
         terminal_output (bool): Flag to determine whether to print the acquired data to the terminal.
                                Default is False.
 
@@ -249,7 +248,57 @@ def save_data_to_csv(data, header, filename):
 LCD Display functions
 """
 
-def LCD_print_in_monitoring(lcd, T_hot, temperature1, temperature2, pressure1, pressure2):
+def LCD_print_in_monitoring(lcd, T_hot_wall, temperature1, temperature2, pressure1, pressure2):
+    
+    """
+    Display temperature and pressure readings on the LCD screen durin T and P monitoring.
+    Hardcoded for 2 T sensors and 2 P sensors
+
+    Args:
+        lcd (object of Charlcd class): An object representing the LCD screen.
+        T_hot_wall (float): Hot wall temperature value.
+        temperature1 (float): Temperature value 1.
+        temperature2 (float): Temperature value 2.
+        pressure1 (float): Pressure value 1.
+        pressure2 (float): Pressure value 2.
+
+    Returns:
+        None
+    """
+    # Clear the LCD screen
+    lcd.clear()
+
+    # Format temperature and pressure strings
+    temperature1_str = "{:<1}={:>3.1f}".format("T1", temperature1)
+    temperature2_str = "{:<1}={:>3.1f}".format("T2", temperature2)
+    pressure1_str = "{:<1}={:>5.2f}".format("P1", pressure1)
+    pressure2_str = "{:<1}={:>5.2f}".format("P2", pressure2)
+    T_hot_wall_str = "{:<1}={:>3.1f}".format("TH", T_hot_wall)
+    ready_str = "IN>READY"
+
+    # Display temperature and pressure on the LCD screen
+    lcd.cursor_pos = (0, 0)
+    lcd.write_string(temperature1_str)
+
+    lcd.cursor_pos = (0, 10)
+    lcd.write_string(pressure1_str)
+
+    lcd.cursor_pos = (1, 0)
+    lcd.write_string(temperature2_str)
+
+    lcd.cursor_pos = (1, 10)
+    lcd.write_string(pressure2_str)
+
+    lcd.cursor_pos = (2, 0)
+    lcd.write_string(T_hot_wall_str)
+
+    lcd.cursor_pos = (3, 0)
+    lcd.write_string(ready_str)
+
+
+
+
+def LCD_print_in_acquisition(lcd, N, T_hot_wall, temperature1, temperature2, pressure1, pressure2):
     # Clear the LCD screen
 	lcd.clear()
 
@@ -258,41 +307,7 @@ def LCD_print_in_monitoring(lcd, T_hot, temperature1, temperature2, pressure1, p
 	temperature2_str = "{:<1}={:>3.1f}".format("T2", temperature2)
 	pressure1_str = "{:<1}={:>5.2f}".format("P1", pressure1)
 	pressure2_str = "{:<1}={:>5.2f}".format("P2", pressure2)
-	T_hot_str = "{:<1}={:>3.1f}".format("TH", T_hot)
-	ready_str = "IN>READY"
-
-	# Display temperature and pressure on the LCD screen
-	lcd.cursor_pos = (0, 0)
-	lcd.write_string(temperature1_str)
-
-	lcd.cursor_pos = (0, 10)
-	lcd.write_string(pressure1_str)
-
-	lcd.cursor_pos = (1, 0)
-	lcd.write_string(temperature2_str)
-
-	lcd.cursor_pos = (1, 10)
-	lcd.write_string(pressure2_str)
-
-	lcd.cursor_pos = (2, 0)
-	lcd.write_string(T_hot_str)
-
-	lcd.cursor_pos = (3, 0)
-	lcd.write_string(ready_str)
-
-
-
-
-def LCD_print_in_acquisition(lcd, N, T_hot, temperature1, temperature2, pressure1, pressure2):
-    # Clear the LCD screen
-	lcd.clear()
-
-	# Format temperature and pressure strings
-	temperature1_str = "{:<1}={:>3.1f}".format("T1", temperature1)
-	temperature2_str = "{:<1}={:>3.1f}".format("T2", temperature2)
-	pressure1_str = "{:<1}={:>5.2f}".format("P1", pressure1)
-	pressure2_str = "{:<1}={:>5.2f}".format("P2", pressure2)
-	T_hot_str = "{:<1}={:>3.1f}".format("TH", T_hot)
+	T_hot_wall_str = "{:<1}={:>3.1f}".format("TH", T_hot_wall)
 	ready_str = "IN>ACQ"
 	N_str = "{:<1}={:>4.0f}".format("N", N)
 
@@ -310,7 +325,7 @@ def LCD_print_in_acquisition(lcd, N, T_hot, temperature1, temperature2, pressure
 	lcd.write_string(pressure2_str)
 
 	lcd.cursor_pos = (2, 0)
-	lcd.write_string(T_hot_str)
+	lcd.write_string(T_hot_wall_str)
 
 	lcd.cursor_pos = (3, 0)
 	lcd.write_string(ready_str)
@@ -455,7 +470,7 @@ def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_mea
         GPIO.cleanup() #Needed in order to clear GPIO pin assignement
 
 
-def T_P_disp(lcd, T_hot, channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, alarm_on = True, pressure_alarm = 150, terminal_output = True, lcd_output = False):
+def T_P_disp(lcd, T_hot_wall, channels_134=(0, 1), channels_128=(0, 1), delay_between_reads=0.1, alarm_on = True, pressure_alarm = 150, terminal_output = True, lcd_output = False):
     """
     TD : ADD FLAG TERMINAL OUTPUT IN THE CODE
     
@@ -463,7 +478,7 @@ def T_P_disp(lcd, T_hot, channels_134=(0, 1), channels_128=(0, 1), delay_between
 
     Args:
         lcd (object): object of CharLCD class
-        T_hot (float): Temperature of the hot wall of the channel
+        T_hot_wall (float): Temperature of the hot wall of the channel
         channels_134 (tuple, optional): Sensors channels on MC134. Defaults to (0, 1).
         channels_128 (tuple, optional): Sensors channels on MC128. Defaults to (0, 1).
         delay_between_reads (float, optional): Delay between sensor readings in seconds. Defaults to 0.1.
@@ -549,7 +564,7 @@ def T_P_disp(lcd, T_hot, channels_134=(0, 1), channels_128=(0, 1), delay_between
                 pressures.append(value_P_bar)
                 
             
-            LCD_print_in_monitoring(lcd, T_hot, temperatures[0], temperatures[1], pressures[0], pressures[1])
+            LCD_print_in_monitoring(lcd, T_hot_wall, temperatures[0], temperatures[1], pressures[0], pressures[1])
             stdout.flush()
             sleep(delay_between_reads)
 
