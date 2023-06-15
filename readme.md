@@ -27,20 +27,20 @@ Regularly check for updates using `sudo apt update` and `sudo apt upgrade`.
 
 ## Usage
 
-There is 3 acquisition script in this repository with different that provides different acquisition modes.
+There is 3 different acquisition scripts in this repository that provides different acquisition modes.
 
 1. T_P_acq_man.py
 
-     This script allow to manually save a CSV file containing temperature and pressure data. Execute it if you want to record T and P data without a trigger input to start the acquisition. Modify the script with desired acquisition parameters
+     This script allow to manually save a CSV file containing temperature and pressure data. Execute it if you want to record T and P data without a trigger input to start the acquisition. Modify the script with desired acquisition parameters. No LCD display support
 
 3. T_P_acq_trigger_asynchronous.py
 
-4. T_P_acq_trigger_synchronous.py
+        This script allow to save a CSV file containing temperature and pressure data. The acquisition frequency and number of points are defined by the user in the script. The script waits for a trigger input to start the acquisition. Monitors T and P with terminal output while waiting for a trigger input. No LCD display support
 
+3. T_P_acq_trigger_synchronous.py
+
+     **This is the main acquisition script**. Execute it for experimental data acquisition. This scripts monitors T and P with terminal output and LCD output while waiting for a trigger input. When a trigger input is received, it updates a data_array containing T1, T2, P1, P2 data as well as index and relative time of measure (compared to first data point). When the script is interrupted through Ctrl+C, it saves the data array as a CSV file. 
    
-
-Explanation of how to use the code or project, including examples, code snippets, and command-line instructions. Include any necessary configurations or environment variables.
-
 ## Features
 
 List the key features and functionalities of the codebase, highlighting what problems it solves and what it can do.
