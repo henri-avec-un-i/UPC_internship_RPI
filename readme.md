@@ -1,6 +1,6 @@
-# Project Title
+# Python Pressure and Temperature data acquisition with Raspberry Pi and MCC HATs board MCC 128 and MCC 134
 
-Brief description of the project or codebase.
+This repository contains python scripts for pressure and temperature acquisition data acquisition using a Raspberry Pi model 4B and MCC HATs board MCC 128 and MCC 134.
 
 ## Table of Contents
 
