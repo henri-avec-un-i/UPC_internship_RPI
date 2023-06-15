@@ -8,12 +8,6 @@ This repository contains python scripts for pressure and temperature acquisition
 - [Usage](#usage)
 - [Features](#features)
 - [Documentation](#documentation)
-- [Contributing](#contributing)
-- [License](#license)
-- [Credits](#credits)
-- [Contact Information](#contact-information)
-- [Troubleshooting](#troubleshooting)
-- [Version History](#version-history)
 
 ## Installation
 
