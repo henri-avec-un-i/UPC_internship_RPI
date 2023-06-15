@@ -339,17 +339,18 @@ def LCD_print_in_acquisition(lcd, N, T_hot_wall, temperature1, temperature2, pre
 Main acquisition and display functions
 """
 
-def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_measures=10, terminal_output=True,
+def T_P_acq_csv(channels_134, channels_128, acq_frequency, N_measures, terminal_output=True,
                 data_filename="data.csv", alarm_on = True, pressure_alarm = 130):
     """
-    Acquires Pressure and Temperature data and writes it to a CSV file. Right now hardcoded only for 2 Pressure sensors
-    and 2 Temperature sensors
+    Acquires Pressure and Temperature data with specified acquisition frequency and number of measures
+    and writes it to a CSV file. Right now hardcoded only for 2 Pressure sensors
+    and 2 Temperature sensors.
 
     Args:
-        channels_134 (tuple, optional): Sensors channels on MC134. Defaults to (0, 1).
-        channels_128 (tuple, optional): Sensors channels on MC128. Defaults to (0, 1).
-        acq_frequency (int, optional): Acquisition frequency in Hz. Defaults to 1.
-        N_measures (int, optional): Number of measures. Defaults to 10.
+        channels_134 (tuple, optional): Sensors channels on MC134.
+        channels_128 (tuple, optional): Sensors channels on MC128.
+        acq_frequency (int, optional): Acquisition frequency in Hz.
+        N_measures (int, optional): Number of measures.
         terminal_output (bool, optional): Whether to display terminal output, ie here real time T and P values as well as acquisition parameters. Defaults to True.
         data_filename (str, optional): Name of the data CSV file. Defaults to "data.csv".
         alarm_on (bool, optional):  Wheter to activate the safety alarm. Default to True
@@ -391,6 +392,7 @@ def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_mea
             #Writes header
             writer.writerow(["Date and time", formatted_datetime, "Number of measures: ", N_measures,
                              "Acquisition frequency: ", acq_frequency, "Hz"])
+            # to modify here if we want more sensors
             writer.writerow(["N_measure", "Pressure 1", "Temperature 1", "Pressure 2", "Temperature 2"])
 
             if terminal_output:
@@ -461,7 +463,7 @@ def T_P_acq_csv(channels_134=(0, 1), channels_128=(0, 1), acq_frequency=1, N_mea
                 # Delay between reads
                 sleep(delay_between_reads)
                 
-                # Writes the row of data to the csv file
+                # Writes the row of data to the csv file, to modify here if we want more sensors
                 row = [i, P_array[i, 0], T_array[i, 0], P_array[i, 1], T_array[i, 1]]
                 writer.writerow(row)
 
@@ -529,14 +531,15 @@ def T_P_disp(lcd, T_hot_wall, channels_134=(0, 1), channels_128=(0, 1), delay_be
             for channel in channels_134:
                 value_T = hat_134.t_in_read(channel)
 
-                if value_T == mcc134.OPEN_TC_VALUE:
-                    print('     Open     ', end='')
-                elif value_T == mcc134.OVERRANGE_TC_VALUE:
-                    print('     OverRange', end='')
-                elif value_T == mcc134.COMMON_MODE_TC_VALUE:
-                    print('   Common Mode', end='')
-                else:
-                    print('{:12.2f} C'.format(value_T), end='')
+                if terminal_output:
+                    if value_T == mcc134.OPEN_TC_VALUE:
+                        print('     Open     ', end='')
+                    elif value_T == mcc134.OVERRANGE_TC_VALUE:
+                        print('     OverRange', end='')
+                    elif value_T == mcc134.COMMON_MODE_TC_VALUE:
+                        print('   Common Mode', end='')
+                    else:
+                        print('{:12.2f} C'.format(value_T), end='')
                     
                 temperatures.append(value_T)
                     
@@ -554,16 +557,16 @@ def T_P_disp(lcd, T_hot_wall, channels_134=(0, 1), channels_128=(0, 1), delay_be
                         system_shutdown()
                         print('Warning : Pressure above ', pressure_alarm,' bar')
 
-                      
-                #This is here in order to print continuously T and P values over the same line
-                if channel == channels_128[-1]:
-                    print('{:12.2f} bar'.format(value_P_bar), end='\r')
-                else:
-                    print('{:12.2f} bar'.format(value_P_bar), end='')
+                if terminal_output:     
+                    #This is here in order to print continuously T and P values over the same line
+                    if channel == channels_128[-1]:
+                        print('{:12.2f} bar'.format(value_P_bar), end='\r')
+                    else:
+                        print('{:12.2f} bar'.format(value_P_bar), end='')
                 
                 pressures.append(value_P_bar)
                 
-            
+            # To modify here if we want more sensors, but we need to modify also LCD_print_in_monitoring() and change LCD display
             LCD_print_in_monitoring(lcd, T_hot_wall, temperatures[0], temperatures[1], pressures[0], pressures[1])
             stdout.flush()
             sleep(delay_between_reads)
@@ -575,39 +578,6 @@ def T_P_disp(lcd, T_hot_wall, channels_134=(0, 1), channels_128=(0, 1), delay_be
 ################################################
 
 
-
-
-'''
-THIS FUNCTION DOESNT WORK BECAUSE I DON'T FIND A WAY TO MODIFY IN PLACE DATA_ARRAY
-
-def update_T_P_array(hat_134, hat_128, relative_time, rising_edge_counter, start_time, channels_T=(0, 1), channels_P=(0, 1)):
-    """
-    Appends new temperature (T) and pressure (P) values, along with the time of measurement, to the data array.
-
-    Args:
-        hat_134 (float): Measurement value of temperature from sensor hat_134.
-        hat_128 (float): Measurement value of temperature from sensor hat_128.
-        data_array (list): List of lists containing existing data rows.
-        relative_time (float): Time of measurement relative to a reference point.
-        channels_T (tuple, optional): Tuple containing the indices of temperature channels in the measurement. Defaults to (0, 1).
-        channels_P (tuple, optional): Tuple containing the indices of pressure channels in the measurement. Defaults to (0, 1).
-
-    Returns:
-        list: Updated data array with the new measurement values appended.
-    """
-    
-    global data_array
-    
-    # Retrieve the current temperature and pressure measurement values
-    new_row = [rising_edge_counter] + [relative_time] + get_current_T_P(hat_134, hat_128, channels_T=(0, 1), channels_P=(0, 1))
-    
-    # If the array is empty (first measurement), create a new array with the first measurement
-    if data_array == []:
-        data_array = [new_row]
-    else:
-        data_array.append(new_row)
-        
-'''
     
 
 
