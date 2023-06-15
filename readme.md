@@ -17,6 +17,8 @@ This repository contains python scripts for pressure and temperature acquisition
 
 ## Installation
 
+Check MCC official documentation for MCC HATs set up procedure [here](https://mccdaq.github.io/daqhats/install.html). 
+
 Detailed instructions on how to install and set up the project, including any dependencies or prerequisites. Specify version numbers, if applicable.
 
 ## Usage
