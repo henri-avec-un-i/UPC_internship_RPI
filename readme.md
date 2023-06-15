@@ -34,7 +34,7 @@ There is 3 different acquisition scripts in this repository that provides differ
 
 3. T_P_acq_trigger_synchronous.py
 
-     **This is the main acquisition script**. Execute it for experimental data acquisition. This scripts monitors T and P with terminal output and LCD output while waiting for a trigger input. When a trigger input is received, it updates a data_array containing T1, T2, P1, P2 data as well as index and relative time of measure (compared to first data point). When the script is interrupted through Ctrl+C, it saves the data array as a CSV file.
+     **This is the main acquisition script**. Execute it for experimental data acquisition. This scripts monitors T and P with terminal output and LCD output while waiting for a trigger input. When a trigger input is received, it updates a data_array containing T1, T2, P1, P2 data as well as index and relative time of measure (compared to first data point). When the script is interrupted through Ctrl+C, it saves the data array as a CSV file. Modify the script according to Hardware setup and to change acquisition parameters.
 
 To execute the scripts, open a terminal, go to the repository location with `cd [repository path]` and then type `python3 [script_name]`.
 
