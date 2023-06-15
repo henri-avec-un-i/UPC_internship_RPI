@@ -40,7 +40,7 @@ There is 3 different acquisition scripts in this repository that provides differ
 
 3. T_P_acq_trigger_synchronous.py
 
-     **This is the main acquisition script**. Execute it for experimental data acquisition. This scripts monitors T and P with terminal output and LCD output while waiting for a trigger input. When a trigger input is received, it updates a data_array containing T1, T2, P1, P2 data as well as index and relative time of measure (compared to first data point). When the script is interrupted through Ctrl+C, it saves the data array as a CSV file. 
+     **This is the main acquisition script**. Execute it for experimental data acquisition. This scripts monitors T and P with terminal output and LCD output while waiting for a trigger input. When a trigger input is received, it updates a data_array containing T1, T2, P1, P2 data as well as index and relative time of measure (compared to first data point). When the script is interrupted through Ctrl+C, it saves the data array as a CSV file.
 
 To execute the scripts, open a terminal, go to the repository location with `cd [repository path]` and then type `python3 [script_name]`.
 
@@ -51,27 +51,3 @@ List the key features and functionalities of the codebase, highlighting what pro
 ## Documentation
 
 Mention any extensive documentation available for the project and provide links or instructions on how to access it. This could include API documentation, user guides, or additional resources.
-
-## Contributing
-
-Guidelines for contributing to the project, including bug reporting, feature requests, and pull requests. Specify any coding standards or formatting guidelines to follow.
-
-## License
-
-Specify the license under which the code is distributed and provide the terms and conditions for using, modifying, or redistributing the code.
-
-## Credits
-
-Acknowledge and give credit to any external libraries, frameworks, or resources used in the project. Include links to their respective websites or repositories.
-
-## Contact Information
-
-Provide your contact details, such as email or GitHub username, for users to reach out to you with questions, feedback, or issues.
-
-## Troubleshooting
-
-Provide troubleshooting tips or workarounds for common problems or known issues with the code. Address frequently asked questions to help users overcome any hurdles they may face.
-
-## Version History
-
-Optional section to highlight major updates, bug fixes, and improvements in each release of the codebase.
