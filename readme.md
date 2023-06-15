@@ -18,11 +18,10 @@ This repository contains python scripts for pressure and temperature acquisition
 ## Installation
 
 Check MCC official documentation for MCC HATs set up procedure [here](https://mccdaq.github.io/daqhats/install.html).
+
 Library needed for script execution : csv, time, sys, numpy, datetime, PRI.GPIO, RPLCD, daqhats. daqhats_utils.py and T_P_acq_func.py needs to be in the same folder as the acquisition script.
 
-Use 
-'python3 pip install [library_name]'
-in linux terminal
+Use `python3 pip install [library_name]` in linux terminal to install any missing library.
 
 
 Detailed instructions on how to install and set up the project, including any dependencies or prerequisites. Specify version numbers, if applicable.
