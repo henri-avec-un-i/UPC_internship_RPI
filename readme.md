@@ -35,7 +35,7 @@ There is 3 different acquisition scripts in this repository that provides differ
 
 2. T_P_acq_trigger_asynchronous.py
 
-        This script allow to save a CSV file containing temperature and pressure data. The acquisition frequency and number of points are defined by the user in the script. The script waits for a trigger input to start the acquisition. Monitors T and P with terminal output while waiting for a trigger input. No LCD display support
+     This script allow to save a CSV file containing temperature and pressure data. The acquisition frequency and number of points are defined by the user in the script. The script waits for a trigger input to start the acquisition. Monitors T and P with terminal output while waiting for a trigger input. No LCD display support
 
 3. T_P_acq_trigger_synchronous.py
 
