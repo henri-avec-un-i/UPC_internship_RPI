@@ -23,12 +23,21 @@ Library needed for script execution : csv, time, sys, numpy, datetime, PRI.GPIO,
 
 Use `python3 pip install [library_name]` in linux terminal to install any missing library.
 
-Regularly check for updates using `sudo apt update` and `sudo apt upgrade`
-
-
-Detailed instructions on how to install and set up the project, including any dependencies or prerequisites. Specify version numbers, if applicable.
+Regularly check for updates using `sudo apt update` and `sudo apt upgrade`.
 
 ## Usage
+
+There is 3 acquisition script in this repository with different that provides different acquisition modes.
+
+1. T_P_acq_man.py
+
+     This script allow to manually save a CSV file containing temperature and pressure data. Execute it if you want to record T and P data without a trigger input to start the acquisition. Modify the script with desired acquisition parameters
+
+3. T_P_acq_trigger_asynchronous.py
+
+4. T_P_acq_trigger_synchronous.py
+
+   
 
 Explanation of how to use the code or project, including examples, code snippets, and command-line instructions. Include any necessary configurations or environment variables.
 
