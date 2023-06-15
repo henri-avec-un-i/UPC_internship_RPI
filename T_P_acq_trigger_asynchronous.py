@@ -17,7 +17,7 @@ Purpose:
         This script displays real time T and P data with the function
         T_P_disp() (see doc in source file T_P_acq_func). When a trigger
         input is detected, a csv file containing a recording of T and P
-        values. You can change acquisition parameters by modifying 
+        values is saved. You can change acquisition parameters by modifying 
         T_P_acq_csv() arguments
 
 """
@@ -27,7 +27,6 @@ GPIO.setmode(GPIO.BCM)
 
 # Define the GPIO pin number
 trigger_pin = 17
-
 
 
 # Set up the GPIO pin as an input with an initial high state

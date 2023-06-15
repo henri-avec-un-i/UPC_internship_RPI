@@ -1,3 +1,7 @@
+from __future__ import print_function #Must be at the beginning of the file for some reasons
+
+################################################
+
 """
 
 Description:
@@ -9,9 +13,13 @@ TO IMPLEMENT LATER WITH THREADING
 timeout_delay = 5
 
 """
+################################################
 
-#Library import
-from __future__ import print_function
+"""
+Imports
+"""
+
+#General purpose library
 import RPi.GPIO as GPIO
 import time
 import csv
@@ -24,48 +32,51 @@ from RPLCD import CharLCD, cleared, cursor
 from T_P_acq_func import *
 from daqhats import mcc128, OptionFlags, mcc134, HatIDs, HatError, TcTypes, AnalogInputMode, AnalogInputRange
 from daqhats_utils import select_hat_device, tc_type_to_string, \
-enum_mask_to_string, input_mode_to_string, input_range_to_string #This needs to be in the same folders as this script
+enum_mask_to_string, input_mode_to_string, input_range_to_string 
+
+#daqhats_utils needs to be in the same folders as this script
+
+################################################
 
 """
-
-Docstring here
-
+Hardware initialisation
 """
-
 
 ### MCC HATS INITIALISATION
 # Initialisation of MC128
-channels_128=(0, 1)
-address = select_hat_device(HatIDs.MCC_128)
-hat_128 = mcc128(address)
-input_mode = AnalogInputMode.SE
-input_range = AnalogInputRange.BIP_5V
-hat_128.a_in_mode_write(input_mode)
-hat_128.a_in_range_write(input_range)
-channels_T = channels_128
+channels_128=(0, 1) #Hardware channel on which the sensors are connected to the MC 128 board. Check MCC Documentation for references
+address = select_hat_device(HatIDs.MCC_128) #Initialisation of HAT adress
+hat_128 = mcc128(address) #Creation of board object of class mcc128
+input_mode = AnalogInputMode.SE #Selection of input mode between Single ended and Differential mode for Analog read of the sensor input. Check MCC Documentation for references
+input_range = AnalogInputRange.BIP_5V # Selection of analog input voltage range. For current pressure sensor (RS: 797-4986), range is 0-5V
+hat_128.a_in_mode_write(input_mode) #Write the input mode to the HAT board
+hat_128.a_in_range_write(input_range) #Write the input range to the HAT board
+
+channels_T = channels_128 #MCC 128 channels are used for pressure measurment
 
 # Initialisation of MC134
-channels_134=(0, 1)
-address_134 = select_hat_device(HatIDs.MCC_134)
-hat_134 = mcc134(address_134)
-tc_type = TcTypes.TYPE_K
-for chan in channels_134:
+channels_134=(0, 1) #Hardware channel on which the sensors are connected to the MC 134 board. Check MCC Documentation for references
+address_134 = select_hat_device(HatIDs.MCC_134) #Initialisation of HAT adress
+hat_134 = mcc134(address_134) #Creation of board object of class mcc134
+tc_type = TcTypes.TYPE_K #Selection of thermocouple type for MCC 134. Current sensor (RS: 847-9665) are type K
+for chan in channels_134: # Write the Thermocouple type to the channels of MC 134
     hat_134.tc_type_write(chan, tc_type)
-channels_P = channels_134
+    
+channels_P = channels_134 #MCC 134 channels are used for temperature measurment
 
 ### GPIO pins set up
-# Set the GPIO mode to BCM
+# Set the GPIO mode to BCM indexing (vs Physical indexing). Check Raspberry Pi pinout for references
 GPIO.setmode(GPIO.BCM)
 
-# Define the GPIO pin number
-trigger_pin = 17
+# Define the GPIO pin indexes
+trigger_pin = 17 #Trigger pin index. Syncronisation signal from syncroniser box is received on this pin.
 
 
-# Set up the GPIO pin as an input with an initial high state
-GPIO.setup(trigger_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+# Set up the GPIO pin as an input/output state as well as default state
+GPIO.setup(trigger_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) #trigger pin defined as input and by pulled down by default to avoid floating state when no input is given
 
 
-
+### LCD set up
 #Initialisation of the lcd object from RPLCD library, to modify according to LCD current pinout
 lcd = CharLCD(pin_rs=19, pin_e=6, pins_data=[23, 24, 22, 27],
 			  numbering_mode=GPIO.BCM,
@@ -74,19 +85,30 @@ lcd = CharLCD(pin_rs=19, pin_e=6, pins_data=[23, 24, 22, 27],
 			  auto_linebreaks=True)
 
 
-# Initialisation of data_array
+################################################
+
+"""
+Data stucture initialisation
+"""
+
+### Initialisation of data_array
 header = ['Index', 'Time', 'T1', 'T2', 'P1', 'P2'] # To modify as desired
 filename = 'data_single_read_trigger.csv'
 data_array = []
 
-T_hot_wall = 50 # Hot wall temperature, to specify, in Celcius 
-
+### Definition of script constants
+T_hot_wall = 50 # Hot wall temperature, to specify, in Celcius, to measure later directly on the Peltier module
 pressure_alarm = 130 #Pressure alarm threshold for alarm and system shutdown
 
-#Initialisation of rising_edge_counter, indicate the index of the current measure
+#Initialisation of rising_edge_counter, ie. number of trigger signal received, indicate the index of the current measure
 rising_edge_counter = 0
 
 
+################################################
+
+"""
+Main script logic
+"""
 
 #Function executed at each trigger event
 def trigger_callback(trigger_pin):
@@ -98,10 +120,10 @@ def trigger_callback(trigger_pin):
         
     """
     
+    #I need to set this variables as global because I want to update data_array and rising_edge_counter through this trigger_callback function
     global data_array
     global start_time
     global rising_edge_counter
-    global timeout_delay
     
     #Timer start at first measure, ie first rising edge
     if rising_edge_counter == 0:
