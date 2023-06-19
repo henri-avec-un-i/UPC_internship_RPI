@@ -44,7 +44,7 @@ GPIO.setup(alarm_pin, GPIO.OUT)
 GPIO.setup(system_shutdown_pin, GPIO.OUT)
 
 ### Linear conversion coefficient for Volt_bar func, to adjust later on with calibration protocol and/or functions
-slope, offset = 50, 0 # bar_value = volt_value * slope + offset
+pressure_slope, pressure_offset = 50, 0 # bar_value = volt_value * slope + offset
 
 
 ################################################
@@ -108,7 +108,7 @@ def no_system_shutdown():
 Utility functions
 """
 
-def volt_to_bar(volt_value, slope, offset):
+def volt_to_bar(volt_value, slope = pressure_slope, offset = pressure_offset):
     """
     Converts a voltage value to a bar value using linear conversion.
 
